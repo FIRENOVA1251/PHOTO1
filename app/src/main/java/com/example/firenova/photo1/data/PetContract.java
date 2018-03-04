@@ -82,44 +82,24 @@ public final class PetContract {
          * <p>
          * Type: TEXT
          */
-        public final static String LOCATION = "breed";
+        public final static String LOCATION = "location1";
 
 
-        /**
-         * Gender of the pet.
-         * <p>
-         * The only possible values are {@link #GENDER_UNKNOWN}, {@link #GENDER_MALE},
-         * or {@link #GENDER_FEMALE}.
-         * <p>
-         * Type: INTEGER
-         */
-        public final static String LOCATION2 = "gender";
+
+        public final static String LOCATION2 = "location2";
 
         /**
          * Weight of the pet.
          * <p>
          * Type: INTEGER
          */
-        public final static String TIME = "weight";
+        public final static String TIME = "time";
 
         /**
          * Possible values for the gender of the pet.
          */
         public final static String PHOTO = "photo";
-        public static final int GENDER_UNKNOWN = 0;
-        public static final int GENDER_MALE = 1;
-        public static final int GENDER_FEMALE = 2;
 
-        /**
-         * Returns whether or not the given gender is {@link #GENDER_UNKNOWN}, {@link #GENDER_MALE},
-         * or {@link #GENDER_FEMALE}.
-         */
-        public static boolean isValidGender(int gender) {
-            if (gender == GENDER_UNKNOWN || gender == GENDER_MALE || gender == GENDER_FEMALE) {
-                return true;
-            }
-            return false;
-        }
     }
 
 }

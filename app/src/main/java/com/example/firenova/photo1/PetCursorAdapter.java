@@ -57,23 +57,19 @@ public class PetCursorAdapter extends CursorAdapter {
         // Find individual views that we want to modify in the list item layout
         TextView nameTextView = (TextView) view.findViewById(R.id.name);
         TextView summaryTextView = (TextView) view.findViewById(R.id.summary);
-
+        TextView summary2TextView = (TextView) view.findViewById(R.id.summary2);
         // Find the columns of pet attributes that we're interested in
         int nameColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME);
         int breedColumnIndex = cursor.getColumnIndex(PetEntry.LOCATION);
-
+        int breedColumnIndex2 = cursor.getColumnIndex(PetEntry.LOCATION2);
         // Read the pet attributes from the Cursor for the current pet
         String petName = cursor.getString(nameColumnIndex);
         String petBreed = cursor.getString(breedColumnIndex);
-
-        // If the pet breed is empty string or null, then use some default text
-        // that says "Unknown breed", so the TextView isn't blank.
-        if (TextUtils.isEmpty(petBreed)) {
-            petBreed = context.getString(R.string.unknown_breed);
-        }
+        String petBreed2 = cursor.getString(breedColumnIndex2);
 
         // Update the TextViews with the attributes for the current pet
         nameTextView.setText(petName);
         summaryTextView.setText(petBreed);
+        summary2TextView.setText(petBreed2);
     }
 }

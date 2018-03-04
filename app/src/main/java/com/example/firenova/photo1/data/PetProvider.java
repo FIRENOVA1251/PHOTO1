@@ -135,17 +135,9 @@ public class PetProvider extends ContentProvider {
             throw new IllegalArgumentException("Pet requires a name");
         }
 
-        // Check that the gender is valid
-        Integer gender = values.getAsInteger(PetEntry.LOCATION2);
-        if (gender == null || !PetEntry.isValidGender(gender)) {
-            throw new IllegalArgumentException("Pet requires valid gender");
-        }
 
-        // If the weight is provided, check that it's greater than or equal to 0 kg
-        Integer weight = values.getAsInteger(PetEntry.TIME);
-        if (weight != null && weight < 0) {
-            throw new IllegalArgumentException("Pet requires valid weight");
-        }
+
+
 
         // No need to check the breed, any value is valid (including null).
 
@@ -200,22 +192,9 @@ public class PetProvider extends ContentProvider {
 
         // If the {@link PetEntry#LOCATION2} key is present,
         // check that the gender value is valid.
-        if (values.containsKey(PetEntry.LOCATION2)) {
-            Integer gender = values.getAsInteger(PetEntry.LOCATION2);
-            if (gender == null || !PetEntry.isValidGender(gender)) {
-                throw new IllegalArgumentException("Pet requires valid gender");
-            }
-        }
 
-        // If the {@link PetEntry#TIME} key is present,
-        // check that the weight value is valid.
-        if (values.containsKey(PetEntry.TIME)) {
-            // Check that the weight is greater than or equal to 0 kg
-            Integer weight = values.getAsInteger(PetEntry.TIME);
-            if (weight != null && weight < 0) {
-                throw new IllegalArgumentException("Pet requires valid weight");
-            }
-        }
+
+
 
         // No need to check the breed, any value is valid (including null).
 

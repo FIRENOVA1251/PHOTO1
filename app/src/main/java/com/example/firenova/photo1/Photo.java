@@ -1,9 +1,9 @@
 package com.example.firenova.photo1;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.LoaderManager;
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.CursorLoader;
@@ -14,7 +14,6 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
@@ -23,14 +22,16 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NavUtils;
 
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 
-import android.util.DisplayMetrics;
+import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -38,20 +39,34 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.firenova.photo1.data.PetContract.PetEntry;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
-/**
- * Allows user to create a new pet or edit an existing one.
- */
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageMetadata;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
+
 public class Photo extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -84,14 +99,8 @@ public class Photo extends AppCompatActivity implements
     /**
      * EditText field to enter the pet's gender
      */
-    private Spinner mGenderSpinner;
-
-    /**
-     * Gender of the pet. The possible valid values are in the PetContract.java file:
-     * {@link PetEntry#GENDER_UNKNOWN}, {@link PetEntry#GENDER_MALE}, or
-     * {@link PetEntry#GENDER_FEMALE}.
-     */
-    private int mGender = PetEntry.GENDER_UNKNOWN;
+    private ImageView mGenderSpinner;
+    private String photo1;
 
     /**
      * Boolean flag that keeps track of whether the pet has been edited (true) or not (false)
@@ -110,16 +119,31 @@ public class Photo extends AppCompatActivity implements
         }
     };
 
-    private ImageView mImg;
-    private DisplayMetrics mPhone;
-    private final static int CAMERA = 66;
-    private final static int PHOTO = 99;
+    private int REQUEST_CAMERA = 0, SELECT_FILE = 1;
+    private Button btnSelect;
+    private Bitmap a;
+    private ImageView ivImage;
+    private String userChoosenTask;
+
+
+    private FirebaseDatabase mFirebaseDatabase;
+    private DatabaseReference mMessagesDatabaseReference;
+    private ChildEventListener mChildEventListener;
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseAuth.AuthStateListener mAuthStateListener;
+    private StorageReference mStorageRef;
+    private FirebaseStorage storage = FirebaseStorage.getInstance();
+    byte[] data1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photo);
 
+
+        mStorageRef = FirebaseStorage.getInstance().getReference();
+
+        // mMessagesDatabaseReference = mFirebaseDatabase.getReference().child("messages");
 
         // Examine the intent that was used to launch this activity,
         // in order to figure out if we're creating a new pet or editing an existing one.
@@ -171,100 +195,169 @@ public class Photo extends AppCompatActivity implements
         Location location = locationManager.getLastKnownLocation(provider);
         updateWithNewLocation(location);
         locationManager.requestLocationUpdates(provider, 2000, 10, locationListener);
-
-
-        ///////////讀取手機解析度////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        mPhone = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(mPhone);
-
-        mImg = (ImageView) findViewById(R.id.img);
-        Button mCamera = (Button) findViewById(R.id.camera);
-        Button mPhoto = (Button) findViewById(R.id.photo);
-
-        mCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //開啟相機功能，並將拍照後的圖片存入SD卡相片集內，須由startActivityForResult且帶入requestCode進行呼叫，原因為拍照完畢後返回程式後則呼叫onActivityResult
-                ContentValues value = new ContentValues();
-                value.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-                Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                        value);
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, uri.getPath());
-                startActivityForResult(intent, CAMERA);
-            }
-        });
-
-        mPhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //開啟相簿相片集，須由startActivityForResult且帶入requestCode進行呼叫，原因為點選相片後返回程式呼叫onActivityResult
-                Intent intent = new Intent();
-                intent.setType("image/*");
-                intent.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(intent, PHOTO);
-            }
-        });
+        updateWithTime();
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        btnSelect = (Button) findViewById(R.id.camera);
+        btnSelect.setOnClickListener(new View.OnClickListener() {
 
-
+            @Override
+            public void onClick(View v) {
+                selectImage();
+            }
+        });
+        ivImage = (ImageView) findViewById(R.id.img);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Find all relevant views that we will need to read user input from
         mNameEditText = (EditText) findViewById(R.id.edit_pet_name);
         reallocation = (TextView) findViewById(R.id.reallocation);
         reallocation2 = (TextView) findViewById(R.id.reallocation2);
         time = (TextView) findViewById(R.id.time);
-        mGenderSpinner = (Spinner) findViewById(R.id.spinner_gender);
+        //mGenderSpinner = (ImageView) findViewById(R.id.img);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //拍照完畢或選取圖片後呼叫此函式
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        //藉由requestCode判斷是否為開啟相機或開啟相簿而呼叫的，且data不為null
-        if ((requestCode == CAMERA || requestCode == PHOTO) && data != null) {
-            //取得照片路徑uri
-            Uri uri = data.getData();
-            ContentResolver cr = this.getContentResolver();
-
-            try {
-                //讀取照片，型態為Bitmap
-
-                BitmapFactory.Options mOptions = new BitmapFactory.Options();
-                //Size=2為將原始圖片縮小1/2，Size=4為1/4，以此類推
-                mOptions.inSampleSize = 2;
-                Bitmap bitmap = BitmapFactory.decodeStream(cr.openInputStream(uri), null, mOptions);
-                //判斷照片為橫向或者為直向，並進入ScalePic判斷圖片是否要進行縮放
-                if (bitmap.getWidth() > bitmap.getHeight()) ScalePic(bitmap,
-                        mPhone.heightPixels);
-                else ScalePic(bitmap, mPhone.widthPixels);
-            } catch (FileNotFoundException e) {
-            }
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case Utility.MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (userChoosenTask.equals("Take Photo"))
+                        cameraIntent();
+                    else if (userChoosenTask.equals("Choose from Library"))
+                        galleryIntent();
+                } else {
+                    //code for deny
+                }
+                break;
         }
-
-        super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void ScalePic(Bitmap bitmap, int phone) {
-        //縮放比例預設為1
-        float mScale = 1;
+    private void selectImage() {
+        final CharSequence[] items = {"Take Photo", "Choose from Library",
+                "Cancel"};
 
-        //如果圖片寬度大於手機寬度則進行縮放，否則直接將圖片放入ImageView內
-        if (bitmap.getWidth() > phone) {
-            //判斷縮放比例
-            mScale = (float) phone / (float) bitmap.getWidth();
+        AlertDialog.Builder builder = new AlertDialog.Builder(Photo.this);
+        builder.setTitle("Add Photo!");
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int item) {
+                boolean result = Utility.checkPermission(Photo.this);
 
-            Matrix mMat = new Matrix();
-            mMat.setScale(mScale, mScale);
+                if (items[item].equals("Take Photo")) {
+                    userChoosenTask = "Take Photo";
+                    if (result)
+                        cameraIntent();
 
-            Bitmap mScaleBitmap = Bitmap.createBitmap(bitmap,
-                    0,
-                    0,
-                    bitmap.getWidth(),
-                    bitmap.getHeight(),
-                    mMat,
-                    false);
-            mImg.setImageBitmap(mScaleBitmap);
-        } else mImg.setImageBitmap(bitmap);
+                } else if (items[item].equals("Choose from Library")) {
+                    userChoosenTask = "Choose from Library";
+                    if (result)
+                        galleryIntent();
+
+                } else if (items[item].equals("Cancel")) {
+                    dialog.dismiss();
+                }
+            }
+        });
+        builder.show();
+    }
+
+    private void galleryIntent() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);//
+        startActivityForResult(Intent.createChooser(intent, "Select File"), SELECT_FILE);
+    }
+
+    private void cameraIntent() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(intent, REQUEST_CAMERA);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == SELECT_FILE)
+                onSelectFromGalleryResult(data);
+            else if (requestCode == REQUEST_CAMERA)
+                onCaptureImageResult(data);
+        }
+    }
+
+
+    private void onCaptureImageResult(Intent data) {
+        Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        thumbnail.compress(Bitmap.CompressFormat.PNG, 90, bytes);
+
+        File destination = new File(Environment.getExternalStorageDirectory(),
+                System.currentTimeMillis() + ".jpg");
+
+        data1 = bytes.toByteArray();
+        FileOutputStream fo;
+        try {
+            destination.createNewFile();
+            fo = new FileOutputStream(destination);
+            fo.write(data1);
+
+            fo.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        photo1 = convertIconToString(thumbnail);
+        thumbnail = convertStringToIcon(photo1);
+        ivImage.setImageBitmap(thumbnail);
+
+    }
+
+    @SuppressWarnings("deprecation")
+    private void onSelectFromGalleryResult(Intent data) {
+
+        Bitmap bm = null;
+        if (data != null) {
+            try {
+                bm = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), data.getData());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        bm.compress(Bitmap.CompressFormat.PNG, 90, bytes);
+        data1 = bytes.toByteArray();
+
+        photo1 = convertIconToString(bm);
+        bm = convertStringToIcon(photo1);
+        ivImage.setImageBitmap(bm);
+
+    }
+
+    public static String convertIconToString(Bitmap bitmap) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();// outputstream
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        byte[] appicon = baos.toByteArray();// 转为byte数组
+        return Base64.encodeToString(appicon, Base64.DEFAULT);
+
+    }
+
+    public static Bitmap convertStringToIcon(String st) {
+        // OutputStream out;
+        Bitmap bitmap = null;
+        try {
+            // out = new FileOutputStream("/sdcard/aa.jpg");
+            byte[] bitmapArray;
+            bitmapArray = Base64.decode(st, Base64.DEFAULT);
+            bitmap =
+                    BitmapFactory.decodeByteArray(bitmapArray, 0,
+                            bitmapArray.length);
+            // bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            return bitmap;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -292,18 +385,18 @@ public class Photo extends AppCompatActivity implements
         TextView myLocationText2;
         myLocationText = (TextView) findViewById(R.id.reallocation);
         myLocationText2 = (TextView) findViewById(R.id.reallocation2);
-                try {
-                        Thread.sleep(0);//因为真机获取gps数据需要一定的时间，为了保证获取到，采取系统休眠的延迟方法
-                } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        throw new RuntimeException(e);
-                }
+        try {
+            Thread.sleep(0);//因为真机获取gps数据需要一定的时间，为了保证获取到，采取系统休眠的延迟方法
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
         if (location != null) {
             double lat = location.getLatitude();
             double lng = location.getLongitude();
 
-            Geocoder geocoder = new Geocoder(this);
-//                        Geocoder geocoder = new Geocoder(this, Locale.CHINA);
+          // Geocoder geocoder = new Geocoder(this);
+                        Geocoder geocoder = new Geocoder(this, Locale.CHINA);
             List places = null;
 
             try {
@@ -341,10 +434,9 @@ public class Photo extends AppCompatActivity implements
      * Get user input from editor and save pet into database.
      */
 
+    private void updateWithTime() {
 
-    private void savePet() {
         //獲取當前時間
-
         Calendar c = new GregorianCalendar();
         int year = c.get(Calendar.YEAR);
         String yearString = Integer.toString(year);
@@ -358,20 +450,43 @@ public class Photo extends AppCompatActivity implements
         String hourString = Integer.toString(realhour);
         int minute = c.get(Calendar.MINUTE);
         String minuteString = Integer.toString(minute);
+        String a = ":";
         // Read from input fields
         // Use trim to eliminate leading or trailing white space
-        String timeString = yearString + monthString + dayString + hourString;
+        String timeString = yearString + a + monthString +a + dayString +a + hourString;
+
+        TextView time;
+        time = (TextView) findViewById(R.id.time);
+
+        time.setText(timeString);
+    }
+
+    private void savePet() {
+
+        Calendar c = new GregorianCalendar();
+        int month = c.get(Calendar.MONTH);
+        int realmonth = month + 1;
+        String monthString = Integer.toString(realmonth);
+        int day = c.get(Calendar.DAY_OF_MONTH);
+        String dayString = Integer.toString(day);
+        String b = monthString + "-" + dayString + "-";
+        String path = "firememes/" + b + UUID.randomUUID() + ".png";
+        StorageReference firememeRef = storage.getReference(path);
+        String a = " 時間 :" + time.getText().toString().trim() + " " + reallocation.getText().toString().trim() + " " + reallocation2.getText().toString().trim();
+        StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("text", a).build();
+
+        UploadTask uploadTask = firememeRef.putBytes(data1, metadata);
 
 
         String nameString = mNameEditText.getText().toString().trim();
         String locationString = reallocation.getText().toString().trim();
         String locationString2 = reallocation2.getText().toString().trim();
-
+        String timeString = time.getText().toString().trim();
         // Check if this is supposed to be a new pet
         // and check if all the fields in the editor are blank
         if (mCurrentPetUri == null &&
                 TextUtils.isEmpty(nameString) && TextUtils.isEmpty(locationString) &&
-                TextUtils.isEmpty(timeString) && mGender == PetEntry.GENDER_UNKNOWN) {
+                TextUtils.isEmpty(timeString) && TextUtils.isEmpty(photo1)) {
             // Since no fields were modified, we can return early without creating a new pet.
             // No need to create ContentValues and no need to do any ContentProvider operations.
             return;
@@ -382,8 +497,9 @@ public class Photo extends AppCompatActivity implements
         values.put(PetEntry.COLUMN_PET_NAME, nameString);
         values.put(PetEntry.LOCATION, locationString);
         values.put(PetEntry.LOCATION2, locationString2);
-        values.put(PetEntry.LOCATION2, mGender);
         values.put(PetEntry.TIME, timeString);
+        values.put(PetEntry.PHOTO, photo1);
+
 
         // Determine if this is a new or existing pet by checking if mCurrentPetUri is null or not
         if (mCurrentPetUri == null) {
@@ -419,6 +535,8 @@ public class Photo extends AppCompatActivity implements
                         Toast.LENGTH_SHORT).show();
             }
         }
+
+
     }
 
     @Override
@@ -523,7 +641,9 @@ public class Photo extends AppCompatActivity implements
                 PetEntry.COLUMN_PET_NAME,
                 PetEntry.LOCATION,
                 PetEntry.LOCATION2,
-                PetEntry.TIME};
+                PetEntry.TIME,
+                PetEntry.PHOTO
+        };
 
         // This loader will execute the ContentProvider's query method on a background thread
         return new CursorLoader(this,   // Parent activity context
@@ -546,35 +666,33 @@ public class Photo extends AppCompatActivity implements
         if (cursor.moveToFirst()) {
             // Find the columns of pet attributes that we're interested in
             int nameColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME);
-            int breedColumnIndex = cursor.getColumnIndex(PetEntry.LOCATION);
-            int genderColumnIndex = cursor.getColumnIndex(PetEntry.LOCATION2);
-            int weightColumnIndex = cursor.getColumnIndex(PetEntry.TIME);
+            int location1ColumnIndex = cursor.getColumnIndex(PetEntry.LOCATION);
+            int location2ColumnIndex = cursor.getColumnIndex(PetEntry.LOCATION2);
+            int timeColumnIndex = cursor.getColumnIndex(PetEntry.TIME);
+            int photoColumnIndex = cursor.getColumnIndex(PetEntry.PHOTO);
 
             // Extract out the value from the Cursor for the given column index
             String name = cursor.getString(nameColumnIndex);
-            String breed = cursor.getString(breedColumnIndex);
-            int gender = cursor.getInt(genderColumnIndex);
-            int weight = cursor.getInt(weightColumnIndex);
+            String location1 = cursor.getString(location1ColumnIndex);
+            String location2 = cursor.getString(location2ColumnIndex);
+            String photo = cursor.getString(photoColumnIndex);
+            int gender = cursor.getInt(location2ColumnIndex);
+            int time = cursor.getInt(timeColumnIndex);
 
             // Update the views on the screen with the values from the database
+            //mNameEditText.setText(name);
+
+            a = convertStringToIcon(photo);
+            ivImage.setImageBitmap(a);
             mNameEditText.setText(name);
-            reallocation.setText(breed);
-            time.setText(Integer.toString(weight));
+            reallocation.setText(location1);
+            reallocation2.setText(location2);
+            this.time.setText(Integer.toString(time));
 
             // Gender is a dropdown spinner, so map the constant value from the database
             // into one of the dropdown options (0 is Unknown, 1 is Male, 2 is Female).
             // Then call setSelection() so that option is displayed on screen as the current selection.
-            switch (gender) {
-                case PetEntry.GENDER_MALE:
-                    mGenderSpinner.setSelection(1);
-                    break;
-                case PetEntry.GENDER_FEMALE:
-                    mGenderSpinner.setSelection(2);
-                    break;
-                default:
-                    mGenderSpinner.setSelection(0);
-                    break;
-            }
+
         }
     }
 
@@ -584,7 +702,7 @@ public class Photo extends AppCompatActivity implements
         mNameEditText.setText("");
         reallocation.setText("");
         time.setText("");
-        mGenderSpinner.setSelection(0); // Select "Unknown" gender
+        // Select "Unknown" gender
     }
 
     /**

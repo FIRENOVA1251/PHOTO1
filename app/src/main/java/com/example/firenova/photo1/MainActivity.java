@@ -7,6 +7,7 @@ import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -50,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
+
         // Find the ListView which will be populated with the pet data
         ListView petListView = (ListView) findViewById(R.id.list);
 
@@ -89,24 +91,7 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
-    /**
-     * Helper method to insert hardcoded pet data into the database. For debugging purposes only.
-     */
-    private void insertPet() {
-        // Create a ContentValues object where column names are the keys,
-        // and Toto's pet attributes are the values.
-        ContentValues values = new ContentValues();
-        values.put(PetEntry.COLUMN_PET_NAME, "Toto");
-        values.put(PetEntry.LOCATION, "Terrier");
-        values.put(PetEntry.LOCATION2, PetEntry.GENDER_MALE);
-        values.put(PetEntry.TIME, 7);
 
-        // Insert a new row for Toto into the provider using the ContentResolver.
-        // Use the {@link PetEntry#CONTENT_URI} to indicate that we want to insert
-        // into the pets database table.
-        // Receive the new content URI that will allow us to access Toto's data in the future.
-        Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
-    }
 
     private void deleteAllPets() {
         int rowsDeleted = getContentResolver().delete(PetEntry.CONTENT_URI, null, null);
@@ -125,9 +110,6 @@ public class MainActivity extends AppCompatActivity implements
     public boolean onOptionsItemSelected(MenuItem item) {
         // User clicked on a menu option in the app bar overflow menu
         switch (item.getItemId()) {
-            case R.id.action_insert_a_data:
-                insertPet();
-                return true;
             case R.id.action_delete_all_entries:
                 deleteAllPets();
                 return true;
@@ -141,9 +123,11 @@ public class MainActivity extends AppCompatActivity implements
         String[] projection = {
                 PetEntry._ID,
                 PetEntry.COLUMN_PET_NAME,
-                PetEntry.TIME,
                 PetEntry.LOCATION,
-                PetEntry.LOCATION2};
+                PetEntry.LOCATION2,
+                PetEntry.TIME,
+                PetEntry.PHOTO
+                };
 
         // This loader will execute the ContentProvider's query method on a background thread
         return new CursorLoader(this,   // Parent activity context

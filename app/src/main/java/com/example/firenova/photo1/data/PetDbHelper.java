@@ -13,7 +13,9 @@ public class PetDbHelper extends SQLiteOpenHelper {
 
     public static final String LOG_TAG = PetDbHelper.class.getSimpleName();
 
-    /** Name of the database file */
+    /**
+     * Name of the database file
+     */
     private static final String DATABASE_NAME = "shelter.db";
 
     /**
@@ -36,15 +38,19 @@ public class PetDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         // Create a String that contains the SQL statement to create the pets table
-        String SQL_CREATE_PETS_TABLE =  "CREATE TABLE " + PetEntry.TABLE_NAME + " ("
+        String SQL_CREATE_PETS_TABLE = "CREATE TABLE " + PetEntry.TABLE_NAME + " ("
                 + PetEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + PetEntry.COLUMN_PET_NAME + " TEXT NOT NULL, "
                 + PetEntry.LOCATION + " TEXT, "
-                + PetEntry.LOCATION2 + " INTEGER NOT NULL, "
-                + PetEntry.TIME + " INTEGER NOT NULL DEFAULT 0);";
+                + PetEntry.LOCATION2 + " TEXT, "
+                + PetEntry.TIME + " TEXT,"
+                + PetEntry.PHOTO + " TEXT);";
+
+        String SQL_DROP_PETS_TABLE = "DROP TABLE" + PetEntry.TABLE_NAME + ";";
 
         // Execute the SQL statement
         db.execSQL(SQL_CREATE_PETS_TABLE);
+        //db.execSQL(SQL_DROP_PETS_TABLE);
     }
 
     /**
