@@ -35,6 +35,7 @@
             android:name=".data.PetProvider"
             android:authorities="com.example.android.pets"
             android:exported="false" />
+
     </application>
 
 </manifest>
