@@ -1,16 +1,19 @@
 package com.example.firenova.photo1;
 
+import android.Manifest;
 import android.app.LoaderManager;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -18,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.example.firenova.photo1.data.PetContract.PetEntry;
 
@@ -40,6 +44,18 @@ public class MainActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        int permission = ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            //未取得權限，向使用者要求允許權限
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.READ_EXTERNAL_STORAGE},
+                    1);
+        } else {
+            Toast.makeText(this, "已經拿到權限囉!", Toast.LENGTH_SHORT).show();
+        }
 
         //Setup FAB to open EditorActivity
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -92,7 +108,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
 
-
     private void deleteAllPets() {
         int rowsDeleted = getContentResolver().delete(PetEntry.CONTENT_URI, null, null);
         Log.v("MainActivity", rowsDeleted + " rows deleted from pet database");
@@ -127,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements
                 PetEntry.LOCATION2,
                 PetEntry.TIME,
                 PetEntry.PHOTO
-                };
+        };
 
         // This loader will execute the ContentProvider's query method on a background thread
         return new CursorLoader(this,   // Parent activity context
