@@ -277,15 +277,27 @@ public class Photo extends AppCompatActivity implements
     }
 
     private void cameraIntent() {
-
+        //獲取系統版本
+        int currentapiVersion = android.os.Build.VERSION.SDK_INT;
         //讀取手機解析度
         mPhone = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(mPhone);
 
+
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         File tmpFile = new File(Environment.getExternalStorageDirectory(), "image.jpg");
-        Uri outputFileUri = Uri.fromFile(tmpFile);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
+
+        if (currentapiVersion < 24) {
+            Uri outputFileUri = Uri.fromFile(tmpFile);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
+        } else {
+            //兼容android7.0 使用共享文件的形式
+            ContentValues contentValues = new ContentValues(1);
+            contentValues.put(MediaStore.Images.Media.DATA, tmpFile.getAbsolutePath());
+            Uri uri = this.getApplication().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+        }
+
         startActivityForResult(intent, CAMERA);
 
 
