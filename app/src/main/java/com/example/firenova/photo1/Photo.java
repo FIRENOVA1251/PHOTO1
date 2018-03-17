@@ -253,6 +253,10 @@ public class Photo extends AppCompatActivity implements
     }
 
     private void galleryIntent() {
+
+        //讀取手機解析度
+        mPhone = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(mPhone);
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);//
@@ -341,32 +345,6 @@ public class Photo extends AppCompatActivity implements
         }
     }
 
-
-//    private void onCaptureImageResult(Intent data) {
-//
-//        Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
-//        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-//        thumbnail.compress(Bitmap.CompressFormat.PNG, 100, bytes);
-//        File destination = new File(Environment.getExternalStorageDirectory(),
-//                System.currentTimeMillis() + ".png");
-//
-//        //data1 = bytes.toByteArray();
-//        FileOutputStream fo;
-//        try {
-//            destination.createNewFile();
-//            fo = new FileOutputStream(destination);
-//            fo.write(data1);
-//
-//            fo.close();
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        photo1 = convertIconToString(thumbnail);
-//        thumbnail = convertStringToIcon(photo1);
-//        ivImage.setImageBitmap(thumbnail);
-//    }
 
     @SuppressWarnings("deprecation")
     private void onSelectFromGalleryResult(Intent data) {
