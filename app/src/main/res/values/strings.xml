@@ -10,7 +10,7 @@
     <string name="action_delete_all_entries">Delete All Termites</string>
 
     <!-- Title text for the empty view, which describes the empty dog house image [CHAR LIMIT=50] -->
-    <string name="empty_view_title_text">It\'s a bit lonely here...</string>
+    <string name="empty_view_title_text">It\'s a bit lonely here&#8230;</string>
 
     <!-- Subtitle text for the empty view that prompts the user to add a pet [CHAR LIMIT=50] -->
     <string name="empty_view_subtitle_text">Get started by adding a termite</string>
@@ -82,7 +82,7 @@
     <string name="hint_pet_weight">Time</string>
 
     <!-- Units for weight of the pet (kilograms) [CHAR LIMIT=5] -->
-    <string name="unit_pet_weight">(日期小時)</string>
+    <string name="unit_pet_weight">(日期小時分鐘)</string>
 
     <!-- Label for dropdown menu option if the pet's gender is unknown [CHAR LIMIT=20] -->
     <string name="gender_unknown">Unknown</string>

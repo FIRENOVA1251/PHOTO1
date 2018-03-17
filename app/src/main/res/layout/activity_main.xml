@@ -21,7 +21,7 @@
         <ImageView
             android:id="@+id/empty_shelter_image"
             android:layout_width="wrap_content"
-            android:layout_height="380dip"
+            android:layout_height="250dip"
             android:layout_centerHorizontal="true"
             android:src="@drawable/termites" />
 

@@ -1,7 +1,6 @@
 package com.example.firenova.photo1;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.LoaderManager;
 import android.content.ContentValues;
@@ -21,12 +20,10 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NavUtils;
 
@@ -37,7 +34,6 @@ import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -49,8 +45,6 @@ import com.example.firenova.photo1.data.PetContract.PetEntry;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -59,14 +53,10 @@ import java.util.Locale;
 import java.util.UUID;
 
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
 import static android.media.MediaRecorder.VideoSource.CAMERA;
 
@@ -103,7 +93,7 @@ public class Photo extends AppCompatActivity implements
     /**
      * EditText field to enter the pet's gender
      */
-    private ImageView mGenderSpinner;
+    //private ImageView mGenderSpinner;
     private String photo1;
 
     /**
@@ -115,28 +105,21 @@ public class Photo extends AppCompatActivity implements
      * OnTouchListener that listens for any user touches on a View, implying that they are modifying
      * the view, and we change the mPetHasChanged boolean to true.
      */
-    private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View view, MotionEvent motionEvent) {
-            mPetHasChanged = true;
-            return false;
-        }
-    };
+//    private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
+//        @Override
+//        public boolean onTouch(View view, MotionEvent motionEvent) {
+//            mPetHasChanged = true;
+//            return false;
+//        }
+//    };
 
-    private int REQUEST_CAMERA = 0, SELECT_FILE = 71;
-    private Button btnSelect;
-    private Bitmap a;
+    private int SELECT_FILE = 71;
     private ImageView ivImage;
-    private String userChoosenTask;
+    //private String userChoosenTask;
     private DisplayMetrics mPhone;
 
 
-    private FirebaseDatabase mFirebaseDatabase;
-    private DatabaseReference mMessagesDatabaseReference;
-    private ChildEventListener mChildEventListener;
-    private FirebaseAuth mFirebaseAuth;
-    private FirebaseAuth.AuthStateListener mAuthStateListener;
-    private StorageReference mStorageRef;
+
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     byte[] data1;
 
@@ -146,7 +129,7 @@ public class Photo extends AppCompatActivity implements
         setContentView(R.layout.activity_photo);
 
 
-        mStorageRef = FirebaseStorage.getInstance().getReference();
+        FirebaseStorage.getInstance().getReference();
 
         // mMessagesDatabaseReference = mFirebaseDatabase.getReference().child("messages");
 
@@ -204,6 +187,8 @@ public class Photo extends AppCompatActivity implements
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         selectImage();
+
+        Button btnSelect;
         btnSelect = (Button) findViewById(R.id.camera);
         btnSelect.setOnClickListener(new View.OnClickListener() {
 
@@ -224,21 +209,19 @@ public class Photo extends AppCompatActivity implements
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        switch (requestCode) {
-            case Utility.MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    if (userChoosenTask.equals("Take Photo"))
-                        cameraIntent();
-                    else if (userChoosenTask.equals("Choose from Library"))
-                        galleryIntent();
-                } else {
-                    //code for deny
-                }
-                break;
-        }
-    }
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+//        switch (requestCode) {
+//            case Utility.MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE:
+//                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    if (userChoosenTask.equals("Take Photo"))
+//                        cameraIntent();
+//                    else if (userChoosenTask.equals("Choose from Library"))
+//                        galleryIntent();
+//                }
+//                break;
+//        }
+//    }
 
     private void selectImage() {
         final CharSequence[] items = {"Take Photo", "Choose from Library",
@@ -252,12 +235,12 @@ public class Photo extends AppCompatActivity implements
                 boolean result = Utility.checkPermission(Photo.this);
 
                 if (items[item].equals("Take Photo")) {
-                    userChoosenTask = "Take Photo";
+                   // userChoosenTask = "Take Photo";
                     if (result)
                         cameraIntent();
 
                 } else if (items[item].equals("Choose from Library")) {
-                    userChoosenTask = "Choose from Library";
+                   // userChoosenTask = "Choose from Library";
                     if (result)
                         galleryIntent();
 
@@ -319,7 +302,7 @@ public class Photo extends AppCompatActivity implements
 
 
                 ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes);
+                bitmap.compress(Bitmap.CompressFormat.PNG, 90, bytes);
                 data1 = bytes.toByteArray();
 
                 if (bitmap.getWidth() > bitmap.getHeight()) ScalePic(bitmap,
@@ -332,7 +315,7 @@ public class Photo extends AppCompatActivity implements
 
     private void ScalePic(Bitmap bitmap, int phone) {
         //縮放比例預設為1
-        float mScale = 1;
+        float mScale;
 
         //如果圖片寬度大於手機寬度則進行縮放，否則直接將圖片放入ImageView內
         if (bitmap.getWidth() > phone) {
@@ -397,7 +380,7 @@ public class Photo extends AppCompatActivity implements
             }
         }
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        bm.compress(Bitmap.CompressFormat.PNG, 100, bytes);
+        bm.compress(Bitmap.CompressFormat.PNG, 90, bytes);
         data1 = bytes.toByteArray();
 
         if (bm.getWidth() > bm.getHeight()) ScalePic(bm,
@@ -420,7 +403,7 @@ public class Photo extends AppCompatActivity implements
 
     public static Bitmap convertStringToIcon(String st) {
         // OutputStream out;
-        Bitmap bitmap = null;
+        Bitmap bitmap ;
         try {
             // out = new FileOutputStream("/sdcard/aa.jpg");
             byte[] bitmapArray;
@@ -524,16 +507,17 @@ public class Photo extends AppCompatActivity implements
         String hourString = Integer.toString(hour);
         int minute = c.get(Calendar.MINUTE);
         String minuteString = Integer.toString(minute);
-        String a = ":";
+        String a = "/";
+        String b = "  ";
         // Read from input fields
         // Use trim to eliminate leading or trailing white space
-        String timeString = yearString + a + monthString + a + dayString + a + hourString;
+        String timeString = yearString + a + monthString + a + dayString + b + hourString + a + minuteString;
 
         TextView time;
         time = (TextView) findViewById(R.id.time);
 
         time.setText(timeString);
-        return yearString + monthString + dayString + hourString;
+        return yearString + monthString + dayString + hourString + minuteString;
     }
 
     private void savePet() {
@@ -561,7 +545,7 @@ public class Photo extends AppCompatActivity implements
 
             StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("text", a).build();
 
-            UploadTask uploadTask = firememeRef.putBytes(data1, metadata);
+            firememeRef.putBytes(data1, metadata);
 
 
             String nameString = mNameEditText.getText().toString().trim();
@@ -763,12 +747,13 @@ public class Photo extends AppCompatActivity implements
             String location1 = cursor.getString(location1ColumnIndex);
             String location2 = cursor.getString(location2ColumnIndex);
             String photo = cursor.getString(photoColumnIndex);
-            int gender = cursor.getInt(location2ColumnIndex);
             int time = cursor.getInt(timeColumnIndex);
 
             // Update the views on the screen with the values from the database
             //mNameEditText.setText(name);
 
+
+            Bitmap a;
             a = convertStringToIcon(photo);
             ivImage.setImageBitmap(a);
             mNameEditText.setText(name);

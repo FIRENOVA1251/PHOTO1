@@ -11,7 +11,7 @@ import com.example.firenova.photo1.data.PetContract.PetEntry;
  */
 public class PetDbHelper extends SQLiteOpenHelper {
 
-    public static final String LOG_TAG = PetDbHelper.class.getSimpleName();
+    //public static final String LOG_TAG = PetDbHelper.class.getSimpleName();
 
     /**
      * Name of the database file
@@ -46,7 +46,7 @@ public class PetDbHelper extends SQLiteOpenHelper {
                 + PetEntry.TIME + " TEXT,"
                 + PetEntry.PHOTO + " TEXT);";
 
-        String SQL_DROP_PETS_TABLE = "DROP TABLE" + PetEntry.TABLE_NAME + ";";
+        //String SQL_DROP_PETS_TABLE = "DROP TABLE" + PetEntry.TABLE_NAME + ";";
 
         // Execute the SQL statement
         db.execSQL(SQL_CREATE_PETS_TABLE);
