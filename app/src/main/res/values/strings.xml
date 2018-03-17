@@ -30,6 +30,8 @@
     <!-- Toast message in editor when new pet has been successfully inserted [CHAR LIMIT=NONE] -->
     <string name="editor_insert_pet_successful">Termite saved</string>
 
+    <string name="refresh">Refresh</string>
+
     <!-- Toast message in editor when new pet has failed to be inserted [CHAR LIMIT=NONE] -->
     <string name="editor_insert_pet_failed">Error with saving Termite</string>
 
@@ -82,7 +84,7 @@
     <string name="hint_pet_weight">Time</string>
 
     <!-- Units for weight of the pet (kilograms) [CHAR LIMIT=5] -->
-    <string name="unit_pet_weight">(日期小時分鐘)</string>
+    <string name="unit_pet_weight">(日期時分)</string>
 
     <!-- Label for dropdown menu option if the pet's gender is unknown [CHAR LIMIT=20] -->
     <string name="gender_unknown">Unknown</string>

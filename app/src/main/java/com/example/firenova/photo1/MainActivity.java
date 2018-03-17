@@ -62,6 +62,9 @@ public class MainActivity extends AppCompatActivity implements
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, Photo.class);
                 startActivity(intent);
+
+
+
             }
         });
 
@@ -126,9 +129,14 @@ public class MainActivity extends AppCompatActivity implements
             case R.id.action_delete_all_entries:
                 deleteAllPets();
                 return true;
+            case R.id.refresh:
+                startActivity(new Intent(MainActivity.this,MainActivity.class));
+                return true;
+
         }
         return super.onOptionsItemSelected(item);
     }
+
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {

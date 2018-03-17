@@ -517,7 +517,7 @@ public class Photo extends AppCompatActivity implements
         time = (TextView) findViewById(R.id.time);
 
         time.setText(timeString);
-        return yearString + monthString + dayString + hourString + minuteString;
+        return yearString + monthString + dayString + hourString ;
     }
 
     private void savePet() {
@@ -586,6 +586,9 @@ public class Photo extends AppCompatActivity implements
                     // Otherwise, the insertion was successful and we can display a toast.
                     Toast.makeText(this, getString(R.string.editor_insert_pet_successful),
                             Toast.LENGTH_SHORT).show();
+
+                    finish();
+
                 }
             } else {
                 // Otherwise this is an EXISTING pet, so update the pet with content URI: mCurrentPetUri
@@ -604,6 +607,8 @@ public class Photo extends AppCompatActivity implements
                     Toast.makeText(this, getString(R.string.editor_update_pet_successful),
                             Toast.LENGTH_SHORT).show();
                 }
+
+
             }
 
         }
@@ -625,10 +630,10 @@ public class Photo extends AppCompatActivity implements
     public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
         // If this is a new pet, hide the "Delete" menu item.
-        if (mCurrentPetUri == null) {
-            MenuItem menuItem = menu.findItem(R.id.action_delete);
-            menuItem.setVisible(false);
-        }
+//        if (mCurrentPetUri == null) {
+//            MenuItem menuItem = menu.findItem(R.id.action_delete);
+//            menuItem.setVisible(false);
+//        }
         return true;
     }
 
@@ -642,13 +647,14 @@ public class Photo extends AppCompatActivity implements
                 savePet();
 
                 // Exit activity
-                finish();
+
+
                 return true;
             // Respond to a click on the "Delete" menu option
-            case R.id.action_delete:
-                // Pop up confirmation dialog for deletion
-                //showDeleteConfirmationDialog();
-                return true;
+//            case R.id.action_delete:
+//                // Pop up confirmation dialog for deletion
+//                //showDeleteConfirmationDialog();
+//                return true;
             // Respond to a click on the "Up" arrow button in the app bar
             case android.R.id.home:
                 // If the pet hasn't changed, continue with navigating up to parent activity
@@ -805,6 +811,8 @@ public class Photo extends AppCompatActivity implements
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
     }
+
+
 
 //    /**
 //     * Prompt the user to confirm that they want to delete this pet.
