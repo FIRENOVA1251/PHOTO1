@@ -45,13 +45,13 @@ import com.example.firenova.photo1.data.PetContract.PetEntry;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
-
 
 
 import com.google.firebase.storage.FirebaseStorage;
@@ -117,7 +117,6 @@ public class Photo extends AppCompatActivity implements
     private ImageView ivImage;
     //private String userChoosenTask;
     private DisplayMetrics mPhone;
-
 
 
     private FirebaseStorage storage = FirebaseStorage.getInstance();
@@ -235,12 +234,12 @@ public class Photo extends AppCompatActivity implements
                 boolean result = Utility.checkPermission(Photo.this);
 
                 if (items[item].equals("Take Photo")) {
-                   // userChoosenTask = "Take Photo";
+                    // userChoosenTask = "Take Photo";
                     if (result)
                         cameraIntent();
 
                 } else if (items[item].equals("Choose from Library")) {
-                   // userChoosenTask = "Choose from Library";
+                    // userChoosenTask = "Choose from Library";
                     if (result)
                         galleryIntent();
 
@@ -285,6 +284,7 @@ public class Photo extends AppCompatActivity implements
             intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
         }
 
+
         startActivityForResult(intent, CAMERA);
 
 
@@ -301,17 +301,23 @@ public class Photo extends AppCompatActivity implements
 
             } else if (requestCode == CAMERA) {
 
+
                 Bitmap bitmap = BitmapFactory.decodeFile(Environment
                         .getExternalStorageDirectory() + "/image.jpg");
 
 
                 ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 90, bytes);
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes);
                 data1 = bytes.toByteArray();
 
-                if (bitmap.getWidth() > bitmap.getHeight()) ScalePic(bitmap,
-                        mPhone.heightPixels);
-                else ScalePic(bitmap, mPhone.widthPixels);
+
+
+                    if (bitmap.getWidth() > bitmap.getHeight()) ScalePic(bitmap,
+                            mPhone.heightPixels);
+                    else ScalePic(bitmap, mPhone.widthPixels);
+
+
+
             }
         }
     }
@@ -321,13 +327,14 @@ public class Photo extends AppCompatActivity implements
         //縮放比例預設為1
         float mScale;
 
+
         //如果圖片寬度大於手機寬度則進行縮放，否則直接將圖片放入ImageView內
         if (bitmap.getWidth() > phone) {
             //判斷縮放比例
             mScale = (float) phone / (float) bitmap.getWidth();
 
             Matrix mMat = new Matrix();
-            mMat.setScale(mScale, mScale);
+            mMat.setScale(mScale*0.5f, mScale*0.5f);
 
             Bitmap mScaleBitmap = Bitmap.createBitmap(bitmap,
                     0,
@@ -358,7 +365,7 @@ public class Photo extends AppCompatActivity implements
             }
         }
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        bm.compress(Bitmap.CompressFormat.PNG, 90, bytes);
+        bm.compress(Bitmap.CompressFormat.PNG, 100, bytes);
         data1 = bytes.toByteArray();
 
         if (bm.getWidth() > bm.getHeight()) ScalePic(bm,
@@ -381,7 +388,7 @@ public class Photo extends AppCompatActivity implements
 
     public static Bitmap convertStringToIcon(String st) {
         // OutputStream out;
-        Bitmap bitmap ;
+        Bitmap bitmap;
         try {
             // out = new FileOutputStream("/sdcard/aa.jpg");
             byte[] bitmapArray;
@@ -436,7 +443,7 @@ public class Photo extends AppCompatActivity implements
             List places = null;
 
             try {
-//                                Thread.sleep(2000);
+                Thread.sleep(2000);
                 places = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 4);
 //                                Thread.sleep(2000);
                 //       Toast.makeText(Photo.this, places.size() + "", Toast.LENGTH_LONG).show();
@@ -495,7 +502,7 @@ public class Photo extends AppCompatActivity implements
         time = (TextView) findViewById(R.id.time);
 
         time.setText(timeString);
-        return yearString + monthString + dayString + hourString ;
+        return yearString + monthString + dayString + hourString;
     }
 
     private void savePet() {
@@ -789,7 +796,6 @@ public class Photo extends AppCompatActivity implements
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
     }
-
 
 
 //    /**
