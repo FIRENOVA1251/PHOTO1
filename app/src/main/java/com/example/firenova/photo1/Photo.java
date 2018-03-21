@@ -58,6 +58,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 
+
 import static android.media.MediaRecorder.VideoSource.CAMERA;
 
 
@@ -113,7 +114,7 @@ public class Photo extends AppCompatActivity implements
 //        }
 //    };
 
-    private int SELECT_FILE = 71;
+    final private int SELECT_FILE = 71;
     private ImageView ivImage;
     //private String userChoosenTask;
     private DisplayMetrics mPhone;
@@ -143,11 +144,13 @@ public class Photo extends AppCompatActivity implements
             // This is a new pet, so change the app bar to say "Add a Pet"
             setTitle(getString(R.string.editor_activity_title_new_pet));
 
+
+            selectImage();
             // Invalidate the options menu, so the "Delete" menu option can be hidden.
             // (It doesn't make sense to delete a pet that hasn't been created yet.)
-            invalidateOptionsMenu();
+            //invalidateOptionsMenu();
         } else {
-            // Otherwise this is an existing pet, so change app bar to say "Edit Pet"
+            // Otherwise this is an existing pet, so change app bar to say "View Pet"
             setTitle(getString(R.string.editor_activity_title_view_pet));
 
             // Initialize a loader to read the pet data from the database
@@ -185,7 +188,7 @@ public class Photo extends AppCompatActivity implements
         updateWithTime();
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        selectImage();
+
 
         Button btnSelect;
         btnSelect = (Button) findViewById(R.id.camera);
@@ -264,19 +267,22 @@ public class Photo extends AppCompatActivity implements
 
     private void cameraIntent() {
         //獲取系統版本
-        int currentapiVersion = android.os.Build.VERSION.SDK_INT;
+        final int currentapiVersion = android.os.Build.VERSION.SDK_INT;
         //讀取手機解析度
         mPhone = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(mPhone);
+
 
 
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         File tmpFile = new File(Environment.getExternalStorageDirectory(), "image.jpg");
 
         if (currentapiVersion < 24) {
+
             Uri outputFileUri = Uri.fromFile(tmpFile);
             intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
         } else {
+
             //兼容android7.0 使用共享文件的形式
             ContentValues contentValues = new ContentValues(1);
             contentValues.put(MediaStore.Images.Media.DATA, tmpFile.getAbsolutePath());
@@ -284,9 +290,12 @@ public class Photo extends AppCompatActivity implements
             intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
         }
 
-
         startActivityForResult(intent, CAMERA);
 
+
+        final boolean bool = tmpFile.delete();
+        String a = "please wait a few seconds after taking photo "+bool;
+        Toast.makeText(Photo.this, a, Toast.LENGTH_LONG).show();
 
     }
 
@@ -302,15 +311,12 @@ public class Photo extends AppCompatActivity implements
             } else if (requestCode == CAMERA) {
 
 
-                Bitmap bitmap = BitmapFactory.decodeFile(Environment
-                        .getExternalStorageDirectory() + "/image.jpg");
+                Bitmap bitmap = BitmapFactory.decodeFile(Environment.getExternalStorageDirectory() + "/image.jpg");
 
 
                 ByteArrayOutputStream bytes = new ByteArrayOutputStream();
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes);
                 data1 = bytes.toByteArray();
-
-
 
                     if (bitmap.getWidth() > bitmap.getHeight()) ScalePic(bitmap,
                             mPhone.heightPixels);
@@ -324,17 +330,14 @@ public class Photo extends AppCompatActivity implements
 
 
     private void ScalePic(Bitmap bitmap, int phone) {
-        //縮放比例預設為1
-        float mScale;
-
 
         //如果圖片寬度大於手機寬度則進行縮放，否則直接將圖片放入ImageView內
         if (bitmap.getWidth() > phone) {
             //判斷縮放比例
-            mScale = (float) phone / (float) bitmap.getWidth();
+            final float mScale = (float) phone / (float) bitmap.getWidth();
 
             Matrix mMat = new Matrix();
-            mMat.setScale(mScale*0.5f, mScale*0.5f);
+            mMat.setScale(mScale*0.25f, mScale*0.25f);
 
             Bitmap mScaleBitmap = Bitmap.createBitmap(bitmap,
                     0,
@@ -477,26 +480,31 @@ public class Photo extends AppCompatActivity implements
      * Get user input from editor and save pet into database.
      */
 
+
+    public static final String a1 = "/";
+    public static final String a2 = "  ";
+    public static final String a3 = ":";
+
     private String updateWithTime() {
 
         //獲取當前時間
         Calendar c = new GregorianCalendar();
-        int year = c.get(Calendar.YEAR);
+        final int year = c.get(Calendar.YEAR);
         String yearString = Integer.toString(year);
-        int month = c.get(Calendar.MONTH);
-        int realmonth = month + 1;
+        final int month = c.get(Calendar.MONTH);
+        final int realmonth = month + 1;
         String monthString = Integer.toString(realmonth);
-        int day = c.get(Calendar.DAY_OF_MONTH);
+        final int day = c.get(Calendar.DAY_OF_MONTH);
         String dayString = Integer.toString(day);
-        int hour = c.get(Calendar.HOUR_OF_DAY);
+        final int hour = c.get(Calendar.HOUR_OF_DAY);
         String hourString = Integer.toString(hour);
-        int minute = c.get(Calendar.MINUTE);
+        final int minute = c.get(Calendar.MINUTE);
         String minuteString = Integer.toString(minute);
-        String a = "/";
-        String b = "  ";
+
+
         // Read from input fields
         // Use trim to eliminate leading or trailing white space
-        String timeString = yearString + a + monthString + a + dayString + b + hourString + a + minuteString;
+        String timeString = yearString + a1 + monthString + a1 + dayString + a2 + hourString + a3 + minuteString;
 
         TextView time;
         time = (TextView) findViewById(R.id.time);
@@ -505,10 +513,12 @@ public class Photo extends AppCompatActivity implements
         return yearString + monthString + dayString + hourString;
     }
 
+    static final String setphoto = "請提供照片";
+
     private void savePet() {
 
         if (data1 == null) {
-            String setphoto = "請提供照片";
+
             Toast.makeText(Photo.this, setphoto, Toast.LENGTH_LONG).show();
         } else {
             Calendar c = new GregorianCalendar();
@@ -519,7 +529,7 @@ public class Photo extends AppCompatActivity implements
             String dayString = Integer.toString(day);
             int hour = c.get(Calendar.HOUR_OF_DAY);
             String hourString = Integer.toString(hour);
-            String b = monthString + "-" + dayString + "-" + hourString + "-";
+            final String b = monthString + "-" + dayString + "-" + hourString + "-";
             String path = "firememes/" + b + UUID.randomUUID() + ".png";
             StorageReference firememeRef = storage.getReference(path);
             String a = mNameEditText.getText().toString().trim() + " 時間 :" + time.getText().toString().trim() + " " + reallocation.getText().toString().trim() + " " + reallocation2.getText().toString().trim();
@@ -533,10 +543,14 @@ public class Photo extends AppCompatActivity implements
             firememeRef.putBytes(data1, metadata);
 
 
+
+
             String nameString = mNameEditText.getText().toString().trim();
             String locationString = reallocation.getText().toString().trim();
             String locationString2 = reallocation2.getText().toString().trim();
             String timeString = time.getText().toString().trim();
+
+
             // Check if this is supposed to be a new pet
             // and check if all the fields in the editor are blank
             if (mCurrentPetUri == null &&
@@ -738,7 +752,7 @@ public class Photo extends AppCompatActivity implements
             String location1 = cursor.getString(location1ColumnIndex);
             String location2 = cursor.getString(location2ColumnIndex);
             String photo = cursor.getString(photoColumnIndex);
-            int time = cursor.getInt(timeColumnIndex);
+            String time = cursor.getString(timeColumnIndex);
 
             // Update the views on the screen with the values from the database
             //mNameEditText.setText(name);
@@ -750,7 +764,7 @@ public class Photo extends AppCompatActivity implements
             mNameEditText.setText(name);
             reallocation.setText(location1);
             reallocation2.setText(location2);
-            this.time.setText(Integer.toString(time));
+            this.time.setText(time);
 
             // Gender is a dropdown spinner, so map the constant value from the database
             // into one of the dropdown options (0 is Unknown, 1 is Male, 2 is Female).
