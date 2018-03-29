@@ -1,6 +1,6 @@
 package com.example.firenova.photo1;
 
-import android.content.DialogInterface;
+
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
@@ -14,9 +14,6 @@ public class About_us extends AppCompatActivity {
         setContentView(R.layout.about_us);
 
     }
-
-
-
 
 
     @Override
