@@ -226,27 +226,27 @@ public class Photo extends AppCompatActivity implements
 //    }
 
     private void selectImage() {
-        final CharSequence[] items = {"Take Photo", "Choose from Library",
-                "Cancel"};
+        final CharSequence[] items = {"拍照", "從相簿選擇",
+                "取消"};
 
         AlertDialog.Builder builder = new AlertDialog.Builder(Photo.this);
-        builder.setTitle("Add Photo!");
+        builder.setTitle("新增照片!");
         builder.setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int item) {
                 boolean result = Utility.checkPermission(Photo.this);
 
-                if (items[item].equals("Take Photo")) {
+                if (items[item].equals("拍照")) {
                     // userChoosenTask = "Take Photo";
                     if (result)
                         cameraIntent();
 
-                } else if (items[item].equals("Choose from Library")) {
+                } else if (items[item].equals("從相簿選擇")) {
                     // userChoosenTask = "Choose from Library";
                     if (result)
                         galleryIntent();
 
-                } else if (items[item].equals("Cancel")) {
+                } else if (items[item].equals("取消")) {
                     dialog.dismiss();
                 }
             }
@@ -294,7 +294,7 @@ public class Photo extends AppCompatActivity implements
 
 
         final boolean bool = tmpFile.delete();
-        String a = "please wait a few seconds after taking photo "+bool;
+        String a = "拍完照請稍候片刻 "+bool;
         Toast.makeText(Photo.this, a, Toast.LENGTH_LONG).show();
 
     }
@@ -445,32 +445,32 @@ public class Photo extends AppCompatActivity implements
             Geocoder geocoder = new Geocoder(this, Locale.CHINA);
             List places = null;
 
-            try {
-                Thread.sleep(2000);
+           try {
+//                Thread.sleep(2000);
                 places = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 4);
-//                                Thread.sleep(2000);
-                //       Toast.makeText(Photo.this, places.size() + "", Toast.LENGTH_LONG).show();
-                System.out.println(places.size() + "");
-            } catch (Exception e) {
+////                                Thread.sleep(2000);
+                       Toast.makeText(Photo.this, places.size() + "", Toast.LENGTH_LONG).show();
+//                System.out.println(places.size() + "");
+           } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            String placename = "";
-            if (places != null && places.size() > 0) {
-                // placename=((Address)places.get(0)).getLocality();
-                //一下的信息将会具体到某条街
-                //其中getAddressLine(0)表示国家，getAddressLine(1)表示精确到某个区，getAddressLine(2)表示精确到具体的街
-                placename = ((Address) places.get(0)).getAddressLine(0) + ", " + System.getProperty("line.separator")
-                        + ((Address) places.get(0)).getAddressLine(1) + ", "
-                        + ((Address) places.get(0)).getAddressLine(2);
-            }
+//            String placename = "";
+ //           if (places != null && places.size() > 0) {
+//                // placename=((Address)places.get(0)).getLocality();
+//                //一下的信息将会具体到某条街
+//                //其中getAddressLine(0)表示国家，getAddressLine(1)表示精确到某个区，getAddressLine(2)表示精确到具体的街
+//                placename = ((Address) places.get(0)).getAddressLine(0) + ", " + System.getProperty("line.separator")
+//                        + ((Address) places.get(0)).getAddressLine(1) + ", "
+//                        + ((Address) places.get(0)).getAddressLine(2);
+//            }
 
             latLongString = "緯度: " + lat;
             latLongString2 = " 經度: " + lng;
-            Toast.makeText(Photo.this, placename, Toast.LENGTH_LONG).show();
+//            Toast.makeText(Photo.this, placename, Toast.LENGTH_LONG).show();
         } else {
-            latLongString = "无法获取地理信息";
-            latLongString2 = "无法获取地理信息";
+            latLongString = "無法獲取地理信息";
+            latLongString2 = "無法獲取地理信息";
         }
         myLocationText.setText(latLongString);
         myLocationText2.setText(latLongString2);
@@ -644,9 +644,6 @@ public class Photo extends AppCompatActivity implements
             case R.id.action_save:
                 // Save pet to database
                 savePet();
-
-                // Exit activity
-
 
                 return true;
             // Respond to a click on the "Delete" menu option

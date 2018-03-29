@@ -122,6 +122,7 @@ public class MainActivity extends AppCompatActivity implements
         return true;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // User clicked on a menu option in the app bar overflow menu
@@ -131,6 +132,9 @@ public class MainActivity extends AppCompatActivity implements
                 return true;
             case R.id.refresh:
                 startActivity(new Intent(MainActivity.this,MainActivity.class));
+                return true;
+            case R.id.about_us:
+                startActivity(new Intent(MainActivity.this,About_us.class));
                 return true;
 
         }

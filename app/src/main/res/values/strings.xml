@@ -7,19 +7,19 @@
     <string name="action_insert_dummy_data">Insert a Data</string>
 
     <!-- Label for overflow menu option that deletes all pet data in the app [CHAR LIMIT=20] -->
-    <string name="action_delete_all_entries">Delete All Termites</string>
+    <string name="action_delete_all_entries">刪除所有白蟻</string>
 
     <!-- Title text for the empty view, which describes the empty dog house image [CHAR LIMIT=50] -->
-    <string name="empty_view_title_text">It\'s a bit lonely here&#8230;</string>
+    <string name="empty_view_title_text">目前沒任何資料&#8230;</string>
 
     <!-- Subtitle text for the empty view that prompts the user to add a pet [CHAR LIMIT=50] -->
-    <string name="empty_view_subtitle_text">Get started by adding a termite</string>
+    <string name="empty_view_subtitle_text">請新增白蟻</string>
 
     <!-- Title for the activity to add a new pet [CHAR LIMIT=20] -->
-    <string name="editor_activity_title_new_pet">Add a Termite</string>
+    <string name="editor_activity_title_new_pet">新增白蟻</string>
 
     <!-- Title for the activity to edit an existing pet [CHAR LIMIT=20] -->
-    <string name="editor_activity_title_view_pet">View Termite</string>
+    <string name="editor_activity_title_view_pet">白蟻資料</string>
 
     <!-- Label for editor menu option to save pet and leave editor [CHAR LIMIT=20] -->
     <string name="action_save">Save</string>
@@ -28,9 +28,21 @@
     <string name="action_delete">Delete</string>
 
     <!-- Toast message in editor when new pet has been successfully inserted [CHAR LIMIT=NONE] -->
-    <string name="editor_insert_pet_successful">Termite saved</string>
+    <string name="editor_insert_pet_successful">白蟻資料以儲存</string>
 
-    <string name="refresh">Refresh</string>
+    <string name="refresh">重新整理列表</string>
+
+    <string name="about_us">關於我們</string>
+
+    <string name="about_us_detail"> "Termites" 秉持著想要深入了解台灣白蟻族群的動態，並讓所有人都能快速且便利地來交流關於白蟻種類與出沒的資訊。期望每位使用 Termites的朋友，共同來記錄台灣各地的白蟻種類與族群。</string>
+
+    <string name="about_us_detail2">APP創作者 :  許育維</string>
+
+    <string name="about_us_detail3">創作單位 :  中央研究院資訊科學研究所生物資訊研究室 蔡懷寬 博士</string>
+
+
+    <string name="about_us_detail4">白蟻專家：國立中興大學昆蟲學系都市昆蟲學研究室 李後鋒 博士</string>
+
 
     <!-- Toast message in editor when new pet has failed to be inserted [CHAR LIMIT=NONE] -->
     <string name="editor_insert_pet_failed">Error with saving Termite</string>
@@ -66,13 +78,13 @@
     <string name="cancel">Cancel</string>
 
     <!-- Label for overview category of attributes in the editor [CHAR LIMIT=30] -->
-    <string name="category_overview">Overview</string>
+    <string name="category_overview">基本資料</string>
 
     <!-- Label for gender information in the editor [CHAR LIMIT=30] -->
     <string name="category_gender">Catalog</string>
 
     <!-- Label for measurement information in the editor [CHAR LIMIT=30] -->
-    <string name="category_time">TIME</string>
+    <string name="category_time">時間</string>
 
     <!-- Text hint for name field in the editor [CHAR LIMIT=30] -->
     <string name="hint_pet_name">註解</string>
