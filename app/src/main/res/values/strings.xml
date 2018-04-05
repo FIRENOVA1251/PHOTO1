@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Name for the application [CHAR LIMIT=12] -->
-    <string name="app_name">Termites</string>
+    <string name="app_name">白蟻分飛通報</string>
 
     <!-- Label for overflow menu option that inserts fake pet data into the app [CHAR LIMIT=20] -->
     <string name="action_insert_dummy_data">Insert a Data</string>
