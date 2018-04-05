@@ -753,8 +753,6 @@ public class Photo extends AppCompatActivity implements
 
             // Update the views on the screen with the values from the database
             //mNameEditText.setText(name);
-
-
             Bitmap a;
             a = convertStringToIcon(photo);
             ivImage.setImageBitmap(a);
