@@ -211,7 +211,7 @@ public class Photo extends AppCompatActivity implements
                 String realrandom2 = UUID.randomUUID().toString();
                 String random2 = realrandom2.substring(0, 3);
 
-                DatabaseReference myRef2 = database.getReference().child(yearString+"/"+monthString + "/" + hourString + "/" + random2 + "/" + "name");
+                DatabaseReference myRef2 = database.getReference().child(yearString+"/"+monthString + "/" + random2 + "/" + "name");
 
                 myRef2.addValueEventListener(new ValueEventListener() {
 
@@ -593,9 +593,9 @@ public class Photo extends AppCompatActivity implements
             firememeRef.putBytes(data1, metadata);
 
 
-            DatabaseReference myRef2 = database.getReference().child(yearString+"/"+monthString + "/" + hourString + "/" + random + "/" + updateWithTime());
+            DatabaseReference myRef2 = database.getReference().child(yearString+"/"+monthString + "/" +  random + "/" + updateWithTime());
             myRef2.setValue(realrandom);
-            DatabaseReference myRef = database.getReference().child(yearString+"/"+monthString + "/" + hourString + "/" + random + "/" + "name");
+            DatabaseReference myRef = database.getReference().child(yearString+"/"+monthString + "/" + random + "/" + "name");
             myRef.setValue("未命名");
 
 
