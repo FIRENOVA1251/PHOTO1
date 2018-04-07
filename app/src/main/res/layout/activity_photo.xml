@@ -30,17 +30,16 @@
             android:layout_height="match_parent"
             android:layout_weight="7"
             android:orientation="vertical"
-            android:paddingLeft="4dp">
+            >
 
             <!-- Name field -->
-            <EditText
+            <TextView
                 android:id="@+id/edit_pet_name"
                 style="@style/EditorFieldStyle"
                 android:layout_width="match_parent"
                 android:layout_weight="4"
                 android:layout_height="0dp"
-                android:hint="@string/hint_pet_name"
-                android:inputType="textCapWords" />
+                 />
 
             <!-- Breed field -->
             <TextView

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Name for the application [CHAR LIMIT=12] -->
-    <string name="app_name">白蟻分飛通報</string>
+    <string name="app_name">白蟻通報</string>
 
     <!-- Label for overflow menu option that inserts fake pet data into the app [CHAR LIMIT=20] -->
     <string name="action_insert_dummy_data">Insert a Data</string>
@@ -28,13 +28,13 @@
     <string name="action_delete">Delete</string>
 
     <!-- Toast message in editor when new pet has been successfully inserted [CHAR LIMIT=NONE] -->
-    <string name="editor_insert_pet_successful">白蟻資料以儲存</string>
+    <string name="editor_insert_pet_successful">白蟻資料已儲存</string>
 
     <string name="refresh">重新整理列表</string>
 
     <string name="about_us">關於我們</string>
 
-    <string name="about_us_detail"> "Termites" 秉持著想要深入了解台灣白蟻族群的動態，並讓所有人都能快速且便利地來交流關於白蟻種類與出沒的資訊。期望每位使用 Termites的朋友，共同來記錄台灣各地的白蟻種類與族群。</string>
+    <string name="about_us_detail"> 白蟻通報APP 的設計理念是冀望民眾一起觀察白蟻分飛，拍照上傳白蟻分飛照片或危害照片，透過眾人之力集結成大量的白蟻分飛數據庫，研究人員透過分析影像中的白蟻物種與分飛的時間與地點，進而了解與預測白蟻在全台各地擴散的時空環境因素，進而發展出新的防治策略。我們誠摯地邀請您成為公民科學家的一員，我們一起努力創建更舒適與更環保的生活空間。對” 白蟻通報APP ”有任何問題，歡迎至Facebook白蟻(大水蟻)交流社團留言。</string>
 
     <string name="about_us_detail2">APP創作者 :  許育維</string>
 

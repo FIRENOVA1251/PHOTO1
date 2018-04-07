@@ -32,11 +32,12 @@ import android.text.TextUtils;
 
 import android.util.Base64;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
+
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -53,13 +54,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 
 
 import static android.media.MediaRecorder.VideoSource.CAMERA;
+import static com.example.firenova.photo1.data.PetContract.PetEntry._ID;
 
 
 public class Photo extends AppCompatActivity implements
@@ -78,7 +84,7 @@ public class Photo extends AppCompatActivity implements
     /**
      * EditText field to enter the pet's name
      */
-    private EditText mNameEditText;
+    private TextView mNameEditText;
 
     /**
      * EditText field to enter the pet's breed
@@ -119,8 +125,23 @@ public class Photo extends AppCompatActivity implements
     //private String userChoosenTask;
     private DisplayMetrics mPhone;
 
+    Calendar c = new GregorianCalendar();
+    final int year = c.get(Calendar.YEAR);
+    String yearString = Integer.toString(year);
+    int month = c.get(Calendar.MONTH);
+    int realmonth = month + 1;
+    String monthString = Integer.toString(realmonth);
+    int day = c.get(Calendar.DAY_OF_MONTH);
+    String dayString = Integer.toString(day);
+    int hour = c.get(Calendar.HOUR_OF_DAY);
+    String hourString = Integer.toString(hour);
 
+    final String b = yearString+ "-" +monthString + "-" + dayString + "-" + hourString + "-";
+    String realrandom = UUID.randomUUID().toString();
+    String random = realrandom.substring(0, 3);
     private FirebaseStorage storage = FirebaseStorage.getInstance();
+    private FirebaseDatabase database = FirebaseDatabase.getInstance();
+
     byte[] data1;
 
     @Override
@@ -131,32 +152,6 @@ public class Photo extends AppCompatActivity implements
 
         FirebaseStorage.getInstance().getReference();
 
-        // mMessagesDatabaseReference = mFirebaseDatabase.getReference().child("messages");
-
-        // Examine the intent that was used to launch this activity,
-        // in order to figure out if we're creating a new pet or editing an existing one.
-        Intent intent = getIntent();
-        mCurrentPetUri = intent.getData();
-
-        // If the intent DOES NOT contain a pet content URI, then we know that we are
-        // creating a new pet.
-        if (mCurrentPetUri == null) {
-            // This is a new pet, so change the app bar to say "Add a Pet"
-            setTitle(getString(R.string.editor_activity_title_new_pet));
-
-
-            selectImage();
-            // Invalidate the options menu, so the "Delete" menu option can be hidden.
-            // (It doesn't make sense to delete a pet that hasn't been created yet.)
-            //invalidateOptionsMenu();
-        } else {
-            // Otherwise this is an existing pet, so change app bar to say "View Pet"
-            setTitle(getString(R.string.editor_activity_title_view_pet));
-
-            // Initialize a loader to read the pet data from the database
-            // and display the current values in the editor
-            getLoaderManager().initLoader(EXISTING_PET_LOADER, null, this);
-        }
 
         LocationManager locationManager;
 
@@ -185,9 +180,71 @@ public class Photo extends AppCompatActivity implements
         Location location = locationManager.getLastKnownLocation(provider);
         updateWithNewLocation(location);
         locationManager.requestLocationUpdates(provider, 2000, 10, locationListener);
+
+
+        // Examine the intent that was used to launch this activity,
+        // in order to figure out if we're creating a new pet or editing an existing one.
+        Intent intent = getIntent();
+        mCurrentPetUri = intent.getData();
+
+        // If the intent DOES NOT contain a pet content URI, then we know that we are
+        // creating a new pet.
+        if (mCurrentPetUri == null) {
+            // This is a new pet, so change the app bar to say "Add a Pet"
+            setTitle(getString(R.string.editor_activity_title_new_pet));
+
+
+            selectImage();
+            // Invalidate the options menu, so the "Delete" menu option can be hidden.
+            // (It doesn't make sense to delete a pet that hasn't been created yet.)
+            //invalidateOptionsMenu();
+        } else {
+            // Otherwise this is an existing pet, so change app bar to say "View Pet"
+            setTitle(getString(R.string.editor_activity_title_view_pet));
+
+            // Initialize a loader to read the pet data from the database
+            // and display the current values in the editor
+            getLoaderManager().initLoader(EXISTING_PET_LOADER, null, this);
+
+            // Read from the fiirebase database
+            for (int i = 1; i < 7500; i++) {
+                String realrandom2 = UUID.randomUUID().toString();
+                String random2 = realrandom2.substring(0, 3);
+
+                DatabaseReference myRef2 = database.getReference().child(yearString+"/"+monthString + "/" + hourString + "/" + random2 + "/" + "name");
+
+                myRef2.addValueEventListener(new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+                        String value = dataSnapshot.getValue(String.class);
+
+                      //  Toast.makeText(Photo.this, "更改成" + value, Toast.LENGTH_LONG).show();
+                        if (value != null) {
+
+                            mNameEditText.setText(value);
+                            ContentValues values = new ContentValues();
+                            String value2 = mNameEditText.getText().toString().trim();
+                            values.put(PetEntry.COLUMN_PET_NAME, value2);
+
+
+                            getContentResolver().update(mCurrentPetUri, values, null, null);
+                        }
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError firebaseError) {
+                        Log.d("FireBaseTraining", "The read failed: " + firebaseError.getMessage());
+                    }
+                });
+
+            }
+        }
+
         updateWithTime();
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 
         Button btnSelect;
@@ -203,12 +260,13 @@ public class Photo extends AppCompatActivity implements
         ivImage = (ImageView) findViewById(R.id.img);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Find all relevant views that we will need to read user input from
-        mNameEditText = (EditText) findViewById(R.id.edit_pet_name);
+        mNameEditText = (TextView) findViewById(R.id.edit_pet_name);
         reallocation = (TextView) findViewById(R.id.reallocation);
         reallocation2 = (TextView) findViewById(R.id.reallocation2);
         time = (TextView) findViewById(R.id.time);
         //mGenderSpinner = (ImageView) findViewById(R.id.img);
     }
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //    @Override
@@ -273,7 +331,6 @@ public class Photo extends AppCompatActivity implements
         getWindowManager().getDefaultDisplay().getMetrics(mPhone);
 
 
-
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         File tmpFile = new File(Environment.getExternalStorageDirectory(), "image.jpg");
 
@@ -294,7 +351,7 @@ public class Photo extends AppCompatActivity implements
 
 
         final boolean bool = tmpFile.delete();
-        String a = "拍完照請稍候片刻 "+bool;
+        String a = "拍完照請稍候片刻 " + bool;
         Toast.makeText(Photo.this, a, Toast.LENGTH_LONG).show();
 
     }
@@ -318,10 +375,9 @@ public class Photo extends AppCompatActivity implements
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes);
                 data1 = bytes.toByteArray();
 
-                    if (bitmap.getWidth() > bitmap.getHeight()) ScalePic(bitmap,
-                            mPhone.heightPixels);
-                    else ScalePic(bitmap, mPhone.widthPixels);
-
+                if (bitmap.getWidth() > bitmap.getHeight()) ScalePic(bitmap,
+                        mPhone.heightPixels);
+                else ScalePic(bitmap, mPhone.widthPixels);
 
 
             }
@@ -337,7 +393,7 @@ public class Photo extends AppCompatActivity implements
             final float mScale = (float) phone / (float) bitmap.getWidth();
 
             Matrix mMat = new Matrix();
-            mMat.setScale(mScale*0.25f, mScale*0.25f);
+            mMat.setScale(mScale * 0.25f, mScale * 0.25f);
 
             Bitmap mScaleBitmap = Bitmap.createBitmap(bitmap,
                     0,
@@ -443,20 +499,20 @@ public class Photo extends AppCompatActivity implements
 
             // Geocoder geocoder = new Geocoder(this);
             Geocoder geocoder = new Geocoder(this, Locale.CHINA);
-            List places = null;
+            List places ;
 
-           try {
+            try {
 //                Thread.sleep(2000);
                 places = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 4);
 ////                                Thread.sleep(2000);
-                       Toast.makeText(Photo.this, places.size() + "", Toast.LENGTH_LONG).show();
+                Toast.makeText(Photo.this, places.size() + "", Toast.LENGTH_LONG).show();
 //                System.out.println(places.size() + "");
-           } catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
 //            String placename = "";
- //           if (places != null && places.size() > 0) {
+            //           if (places != null && places.size() > 0) {
 //                // placename=((Address)places.get(0)).getLocality();
 //                //一下的信息将会具体到某条街
 //                //其中getAddressLine(0)表示国家，getAddressLine(1)表示精确到某个区，getAddressLine(2)表示精确到具体的街
@@ -474,6 +530,7 @@ public class Photo extends AppCompatActivity implements
         }
         myLocationText.setText(latLongString);
         myLocationText2.setText(latLongString2);
+
     }
 
     /**
@@ -521,16 +578,9 @@ public class Photo extends AppCompatActivity implements
 
             Toast.makeText(Photo.this, setphoto, Toast.LENGTH_LONG).show();
         } else {
-            Calendar c = new GregorianCalendar();
-            int month = c.get(Calendar.MONTH);
-            int realmonth = month + 1;
-            String monthString = Integer.toString(realmonth);
-            int day = c.get(Calendar.DAY_OF_MONTH);
-            String dayString = Integer.toString(day);
-            int hour = c.get(Calendar.HOUR_OF_DAY);
-            String hourString = Integer.toString(hour);
-            final String b = monthString + "-" + dayString + "-" + hourString + "-";
-            String path = "firememes/" + b + UUID.randomUUID() + ".png";
+
+
+            String path = "firememes/" + b + realrandom + ".png";
             StorageReference firememeRef = storage.getReference(path);
             String a = mNameEditText.getText().toString().trim() + " 時間 :" + time.getText().toString().trim() + " " + reallocation.getText().toString().trim() + " " + reallocation2.getText().toString().trim();
 
@@ -543,6 +593,10 @@ public class Photo extends AppCompatActivity implements
             firememeRef.putBytes(data1, metadata);
 
 
+            DatabaseReference myRef2 = database.getReference().child(yearString+"/"+monthString + "/" + hourString + "/" + random + "/" + updateWithTime());
+            myRef2.setValue(realrandom);
+            DatabaseReference myRef = database.getReference().child(yearString+"/"+monthString + "/" + hourString + "/" + random + "/" + "name");
+            myRef.setValue("未命名");
 
 
             String nameString = mNameEditText.getText().toString().trim();
@@ -643,7 +697,10 @@ public class Photo extends AppCompatActivity implements
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
                 // Save pet to database
-                savePet();
+                if (mCurrentPetUri == null) {
+                    savePet();
+                }
+
 
                 return true;
             // Respond to a click on the "Delete" menu option
@@ -710,7 +767,7 @@ public class Photo extends AppCompatActivity implements
         // Since the editor shows all pet attributes, define a projection that contains
         // all columns from the pet table
         String[] projection = {
-                PetEntry._ID,
+                _ID,
                 PetEntry.COLUMN_PET_NAME,
                 PetEntry.LOCATION,
                 PetEntry.LOCATION2,
