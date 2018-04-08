@@ -78,7 +78,7 @@
     <string name="cancel">Cancel</string>
 
     <!-- Label for overview category of attributes in the editor [CHAR LIMIT=30] -->
-    <string name="category_overview">基本資料</string>
+    <string name="category_overview">備註</string>
 
     <!-- Label for gender information in the editor [CHAR LIMIT=30] -->
     <string name="category_gender">Catalog</string>

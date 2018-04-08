@@ -38,6 +38,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,6 +50,7 @@ import java.io.File;
 
 import java.io.IOException;
 import java.util.Calendar;
+
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
@@ -84,7 +86,7 @@ public class Photo extends AppCompatActivity implements
     /**
      * EditText field to enter the pet's name
      */
-    private TextView mNameEditText;
+    private EditText mNameEditText;
 
     /**
      * EditText field to enter the pet's breed
@@ -136,12 +138,12 @@ public class Photo extends AppCompatActivity implements
     int hour = c.get(Calendar.HOUR_OF_DAY);
     String hourString = Integer.toString(hour);
 
-    final String b = yearString+ "-" +monthString + "-" + dayString + "-" + hourString + "-";
+    final String b = yearString + "-" + monthString + "-" + dayString + "-" + hourString + "-";
     String realrandom = UUID.randomUUID().toString();
     String random = realrandom.substring(0, 3);
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
-
+    String moreinfo = "";
     byte[] data1;
 
     @Override
@@ -187,6 +189,15 @@ public class Photo extends AppCompatActivity implements
         Intent intent = getIntent();
         mCurrentPetUri = intent.getData();
 
+
+        // Find all relevant views that we will need to read user input from
+        ivImage = (ImageView) findViewById(R.id.img);
+        mNameEditText = (EditText) findViewById(R.id.edit_pet_name);
+        reallocation = (TextView) findViewById(R.id.reallocation);
+        reallocation2 = (TextView) findViewById(R.id.reallocation2);
+        time = (TextView) findViewById(R.id.time);
+        //mGenderSpinner = (ImageView) findViewById(R.id.img);
+
         // If the intent DOES NOT contain a pet content URI, then we know that we are
         // creating a new pet.
         if (mCurrentPetUri == null) {
@@ -206,12 +217,13 @@ public class Photo extends AppCompatActivity implements
             // and display the current values in the editor
             getLoaderManager().initLoader(EXISTING_PET_LOADER, null, this);
 
+            mNameEditText.setEnabled(false);
             // Read from the fiirebase database
             for (int i = 1; i < 7500; i++) {
                 String realrandom2 = UUID.randomUUID().toString();
                 String random2 = realrandom2.substring(0, 3);
 
-                DatabaseReference myRef2 = database.getReference().child(yearString+"/"+monthString + "/" + random2 + "/" + "name");
+                DatabaseReference myRef2 = database.getReference().child(yearString + "/" + monthString + "/" + random2 + "/" + "name");
 
                 myRef2.addValueEventListener(new ValueEventListener() {
 
@@ -220,7 +232,7 @@ public class Photo extends AppCompatActivity implements
 
                         String value = dataSnapshot.getValue(String.class);
 
-                      //  Toast.makeText(Photo.this, "更改成" + value, Toast.LENGTH_LONG).show();
+                        //  Toast.makeText(Photo.this, "更改成" + value, Toast.LENGTH_LONG).show();
                         if (value != null) {
 
                             mNameEditText.setText(value);
@@ -242,10 +254,7 @@ public class Photo extends AppCompatActivity implements
 
             }
         }
-
         updateWithTime();
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
         Button btnSelect;
         btnSelect = (Button) findViewById(R.id.camera);
@@ -257,31 +266,11 @@ public class Photo extends AppCompatActivity implements
 
             }
         });
-        ivImage = (ImageView) findViewById(R.id.img);
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Find all relevant views that we will need to read user input from
-        mNameEditText = (TextView) findViewById(R.id.edit_pet_name);
-        reallocation = (TextView) findViewById(R.id.reallocation);
-        reallocation2 = (TextView) findViewById(R.id.reallocation2);
-        time = (TextView) findViewById(R.id.time);
-        //mGenderSpinner = (ImageView) findViewById(R.id.img);
+
     }
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//    @Override
-//    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-//        switch (requestCode) {
-//            case Utility.MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE:
-//                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    if (userChoosenTask.equals("Take Photo"))
-//                        cameraIntent();
-//                    else if (userChoosenTask.equals("Choose from Library"))
-//                        galleryIntent();
-//                }
-//                break;
-//        }
-//    }
 
     private void selectImage() {
         final CharSequence[] items = {"拍照", "從相簿選擇",
@@ -363,7 +352,22 @@ public class Photo extends AppCompatActivity implements
 
             if (requestCode == SELECT_FILE) {
                 onSelectFromGalleryResult(data);
-
+                moreinfo = "  ( 此資料從相簿上傳 )  ";
+//                try {
+//                    View v;
+//                    String path = (String) v.getTag();
+//
+//                    ExifInterface exifInterface = new ExifInterface(path);
+//
+//                    String TAG_APERTURE = exifInterface.getAttribute(ExifInterface.TAG_APERTURE);
+//                    String TAG_DATETIME = exifInterface.getAttribute(ExifInterface.TAG_DATETIME);
+//
+//
+//                    time.setText(TAG_DATETIME );
+//
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
 
             } else if (requestCode == CAMERA) {
 
@@ -499,7 +503,7 @@ public class Photo extends AppCompatActivity implements
 
             // Geocoder geocoder = new Geocoder(this);
             Geocoder geocoder = new Geocoder(this, Locale.CHINA);
-            List places ;
+            List places;
 
             try {
 //                Thread.sleep(2000);
@@ -582,7 +586,7 @@ public class Photo extends AppCompatActivity implements
 
             String path = "firememes/" + b + realrandom + ".png";
             StorageReference firememeRef = storage.getReference(path);
-            String a = mNameEditText.getText().toString().trim() + " 時間 :" + time.getText().toString().trim() + " " + reallocation.getText().toString().trim() + " " + reallocation2.getText().toString().trim();
+            String a = mNameEditText.getText().toString().trim() + moreinfo+" 時間 :" + time.getText().toString().trim() + " " + reallocation.getText().toString().trim() + " " + reallocation2.getText().toString().trim();
 
             TextView time;
             time = (TextView) findViewById(R.id.time);
@@ -593,9 +597,9 @@ public class Photo extends AppCompatActivity implements
             firememeRef.putBytes(data1, metadata);
 
 
-            DatabaseReference myRef2 = database.getReference().child(yearString+"/"+monthString + "/" +  random + "/" + updateWithTime());
+            DatabaseReference myRef2 = database.getReference().child(yearString + "/" + monthString + "/" + random + "/" + updateWithTime());
             myRef2.setValue(realrandom);
-            DatabaseReference myRef = database.getReference().child(yearString+"/"+monthString + "/" + random + "/" + "name");
+            DatabaseReference myRef = database.getReference().child(yearString + "/" + monthString + "/" + random + "/" + "name");
             myRef.setValue("未命名");
 
 
