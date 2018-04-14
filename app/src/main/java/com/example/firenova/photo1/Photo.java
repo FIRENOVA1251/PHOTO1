@@ -14,12 +14,12 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -48,9 +48,13 @@ import com.example.firenova.photo1.data.PetContract.PetEntry;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
@@ -124,7 +128,6 @@ public class Photo extends AppCompatActivity implements
 
     final private int SELECT_FILE = 71;
     private ImageView ivImage;
-    //private String userChoosenTask;
     private DisplayMetrics mPhone;
 
     Calendar c = new GregorianCalendar();
@@ -140,10 +143,12 @@ public class Photo extends AppCompatActivity implements
 
     final String b = yearString + "-" + monthString + "-" + dayString + "-" + hourString + "-";
     String realrandom = UUID.randomUUID().toString();
-    String random = realrandom.substring(0, 3);
+    String random = realrandom.substring(0, 8);
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     String moreinfo = "";
+
+    boolean photodata = true;
     byte[] data1;
 
     @Override
@@ -151,9 +156,7 @@ public class Photo extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photo);
 
-
         FirebaseStorage.getInstance().getReference();
-
 
         LocationManager locationManager;
 
@@ -179,10 +182,6 @@ public class Photo extends AppCompatActivity implements
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        Location location = locationManager.getLastKnownLocation(provider);
-        updateWithNewLocation(location);
-        locationManager.requestLocationUpdates(provider, 2000, 10, locationListener);
-
 
         // Examine the intent that was used to launch this activity,
         // in order to figure out if we're creating a new pet or editing an existing one.
@@ -196,7 +195,7 @@ public class Photo extends AppCompatActivity implements
         reallocation = (TextView) findViewById(R.id.reallocation);
         reallocation2 = (TextView) findViewById(R.id.reallocation2);
         time = (TextView) findViewById(R.id.time);
-        //mGenderSpinner = (ImageView) findViewById(R.id.img);
+
 
         // If the intent DOES NOT contain a pet content URI, then we know that we are
         // creating a new pet.
@@ -204,6 +203,9 @@ public class Photo extends AppCompatActivity implements
             // This is a new pet, so change the app bar to say "Add a Pet"
             setTitle(getString(R.string.editor_activity_title_new_pet));
 
+            Location location = locationManager.getLastKnownLocation(provider);
+            updateWithNewLocation(location);
+            locationManager.requestLocationUpdates(provider, 2000, 10, locationListener);
 
             selectImage();
             // Invalidate the options menu, so the "Delete" menu option can be hidden.
@@ -217,45 +219,54 @@ public class Photo extends AppCompatActivity implements
             // and display the current values in the editor
             getLoaderManager().initLoader(EXISTING_PET_LOADER, null, this);
 
-            mNameEditText.setEnabled(false);
+            mNameEditText.setText("鑑定中");
             // Read from the fiirebase database
-            for (int i = 1; i < 7500; i++) {
-                String realrandom2 = UUID.randomUUID().toString();
-                String random2 = realrandom2.substring(0, 3);
+            String[] column = {PetEntry.COLUMN_PET_NAME};
+            Cursor cursor = getContentResolver().query(mCurrentPetUri, column, null, null, null);
 
-                DatabaseReference myRef2 = database.getReference().child(yearString + "/" + monthString + "/" + random2 + "/" + "name");
+            try {
+                if (cursor.moveToFirst()) {
+                    do {
 
-                myRef2.addValueEventListener(new ValueEventListener() {
+                        int index = cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME);
+                        String a123 = cursor.getString(index);
+                        Toast.makeText(Photo.this, "更改成" + a123, Toast.LENGTH_LONG).show();
 
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        DatabaseReference myRef2 = database.getReference().child(yearString + "/" + monthString + "/"+dayString +"/" + a123 + "/" + "name");
+                        myRef2.addValueEventListener(new ValueEventListener() {
 
-                        String value = dataSnapshot.getValue(String.class);
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
 
-                        //  Toast.makeText(Photo.this, "更改成" + value, Toast.LENGTH_LONG).show();
-                        if (value != null) {
+                                String value = dataSnapshot.getValue(String.class);
+                                //  Toast.makeText(Photo.this, "更改成" + value, Toast.LENGTH_LONG).show();
+                                if (value != null) {
+                                    mNameEditText.setText(value);
+                                    ContentValues values = new ContentValues();
+                                    String value2 = mNameEditText.getText().toString().trim();
+                                    values.put(PetEntry.COLUMN_PET_NAME, value2);
 
-                            mNameEditText.setText(value);
-                            ContentValues values = new ContentValues();
-                            String value2 = mNameEditText.getText().toString().trim();
-                            values.put(PetEntry.COLUMN_PET_NAME, value2);
+                                    getContentResolver().update(mCurrentPetUri, values, null, null);
+                                }
+                            }
+                            @Override
+                            public void onCancelled(DatabaseError firebaseError) {
+                                Log.d("FireBaseTraining", "The read failed: " + firebaseError.getMessage());
+                            }
+                        });
 
-
-                            getContentResolver().update(mCurrentPetUri, values, null, null);
-                        }
-
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError firebaseError) {
-                        Log.d("FireBaseTraining", "The read failed: " + firebaseError.getMessage());
-                    }
-                });
-
+                    } while (cursor.moveToNext());
+                }
+            } catch (Exception e) {
+                Toast.makeText(Photo.this, "未鑑定完成" , Toast.LENGTH_LONG).show();
+            } finally {
+                if (cursor != null && !cursor.isClosed()) {
+                    cursor.close();
+                }
             }
+            mNameEditText.setEnabled(false);
         }
         updateWithTime();
-
         Button btnSelect;
         btnSelect = (Button) findViewById(R.id.camera);
         btnSelect.setOnClickListener(new View.OnClickListener() {
@@ -263,13 +274,9 @@ public class Photo extends AppCompatActivity implements
             @Override
             public void onClick(View v) {
                 selectImage();
-
             }
         });
-
     }
-
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     private void selectImage() {
@@ -302,14 +309,22 @@ public class Photo extends AppCompatActivity implements
     }
 
     private void galleryIntent() {
+        String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        String mImagePath;
+        mImagePath = Environment.getExternalStorageDirectory() + timeStamp + ".jpg";
+        final File tmpCameraFile = new File(mImagePath);
+        startActivityForResult(new Intent(Intent.ACTION_PICK).setType("image/*").putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tmpCameraFile)), SELECT_FILE);
 
-        //讀取手機解析度
-        mPhone = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(mPhone);
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);//
-        startActivityForResult(Intent.createChooser(intent, "Select File"), SELECT_FILE);
+        //   tmpCameraFile.delete();
+
+
+//        //讀取手機解析度
+//        mPhone = new DisplayMetrics();
+//        getWindowManager().getDefaultDisplay().getMetrics(mPhone);
+//        Intent intent = new Intent();
+//        intent.setType("image/*");
+//        intent.setAction(Intent.ACTION_GET_CONTENT);//
+//        startActivityForResult(Intent.createChooser(intent, "Select File"), SELECT_FILE);
     }
 
     private void cameraIntent() {
@@ -318,7 +333,6 @@ public class Photo extends AppCompatActivity implements
         //讀取手機解析度
         mPhone = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(mPhone);
-
 
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         File tmpFile = new File(Environment.getExternalStorageDirectory(), "image.jpg");
@@ -335,9 +349,7 @@ public class Photo extends AppCompatActivity implements
             Uri uri = this.getApplication().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
             intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
         }
-
         startActivityForResult(intent, CAMERA);
-
 
         final boolean bool = tmpFile.delete();
         String a = "拍完照請稍候片刻 " + bool;
@@ -351,30 +363,16 @@ public class Photo extends AppCompatActivity implements
         if (resultCode == RESULT_OK) {
 
             if (requestCode == SELECT_FILE) {
-                onSelectFromGalleryResult(data);
                 moreinfo = "  ( 此資料從相簿上傳 )  ";
-//                try {
-//                    View v;
-//                    String path = (String) v.getTag();
-//
-//                    ExifInterface exifInterface = new ExifInterface(path);
-//
-//                    String TAG_APERTURE = exifInterface.getAttribute(ExifInterface.TAG_APERTURE);
-//                    String TAG_DATETIME = exifInterface.getAttribute(ExifInterface.TAG_DATETIME);
-//
-//
-//                    time.setText(TAG_DATETIME );
-//
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
+//                onSelectFromGalleryResult(data);
+
+                Uri uri = data.getData();
+                regeoLatlng(uriToRealPath(uri));
+                getPhotoLocation(uriToRealPath(uri));
 
             } else if (requestCode == CAMERA) {
 
-
                 Bitmap bitmap = BitmapFactory.decodeFile(Environment.getExternalStorageDirectory() + "/image.jpg");
-
-
                 ByteArrayOutputStream bytes = new ByteArrayOutputStream();
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes);
                 data1 = bytes.toByteArray();
@@ -382,10 +380,127 @@ public class Photo extends AppCompatActivity implements
                 if (bitmap.getWidth() > bitmap.getHeight()) ScalePic(bitmap,
                         mPhone.heightPixels);
                 else ScalePic(bitmap, mPhone.widthPixels);
-
-
             }
         }
+    }
+
+    private String uriToRealPath(Uri uri) {
+        Cursor cursor = managedQuery(uri,
+                new String[]{MediaStore.Images.Media.DATA},
+                null,
+                null,
+                null);
+        cursor.moveToFirst();
+        String path = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+        return path;
+    }
+
+    private void regeoLatlng(String path) {
+        // 结果UI展示
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inSampleSize = 4;
+        Bitmap bm = BitmapFactory.decodeFile(path, options);
+
+
+      //  savePNG_After(bm, path);
+
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        bm.compress(Bitmap.CompressFormat.PNG, 100, bytes);
+        data1 = bytes.toByteArray();
+        byte[] appicon = bytes.toByteArray();
+        photo1 = Base64.encodeToString(appicon, Base64.DEFAULT);
+        ivImage.setImageBitmap(bm);
+
+    }
+
+//    public static void savePNG_After(Bitmap bitmap, String name) {
+//        File file = new File(name);
+//        try {
+//            FileOutputStream out = new FileOutputStream(file);
+//            if (bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)) {
+//                out.flush();
+//                out.close();
+//            }
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
+
+    public void getPhotoLocation(String imagePath) {
+        Log.i("TAG", "getPhotoLocation==" + imagePath);
+        float output1 ;
+        float output2 ;
+
+        try {
+            ExifInterface exifInterface = new ExifInterface(imagePath);
+            String datetime = exifInterface.getAttribute(ExifInterface.TAG_DATETIME);// 拍摄时间
+            String latValue = exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+            String lngValue = exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
+            String latRef = exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
+            String lngRef = exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
+
+
+            if (latValue != null && latRef != null && lngValue != null && lngRef != null) {
+                output1 = convertRationalLatLonToFloat(latValue, latRef);
+                output2 = convertRationalLatLonToFloat(lngValue, lngRef);
+
+                String lo1 = "真緯度 : " + output1;
+                String lo2 = "真經度 : " + output2;
+
+                reallocation.setText(lo1);
+                reallocation2.setText(lo2);
+                time.setText(convertRationaltime(datetime));
+                photodata = false;
+            }
+
+
+//            setDiffColor(phoneTV, "手机型号：" + deviceName + "," + deviceModel);
+//            setDiffColor(latlngTV, "经纬度：" + output1 + ";" + output2);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static float convertRationalLatLonToFloat(String rationalString, String ref) {
+
+        String[] parts = rationalString.split(",");
+
+        String[] pair;
+        pair = parts[0].split("/");
+        double degrees = Double.parseDouble(pair[0].trim())
+                / Double.parseDouble(pair[1].trim());
+
+        pair = parts[1].split("/");
+        double minutes = Double.parseDouble(pair[0].trim())
+                / Double.parseDouble(pair[1].trim());
+
+        pair = parts[2].split("/");
+        double seconds = Double.parseDouble(pair[0].trim())
+                / Double.parseDouble(pair[1].trim());
+
+        double result = degrees + (minutes / 60.0) + (seconds / 3600.0);
+        if ((ref.equals("S") || ref.equals("W"))) {
+            return (float) -result;
+        }
+        return (float) result;
+    }
+    private static String convertRationaltime(String rationalString) {
+
+
+        String[] parts = rationalString.split(" ");
+
+        String[] pair1;
+        pair1 = parts[0].split(":");
+
+        String[] pair2;
+        pair2 = parts[1].split(":");
+        return pair1[0] + a1 + pair1[1] + a1 + pair1[2].trim() + a2 + pair2[0].trim()+ a3 + pair2[1] + a3 + pair2[2].trim();
+
     }
 
 
@@ -416,30 +531,30 @@ public class Photo extends AppCompatActivity implements
     }
 
 
-    @SuppressWarnings("deprecation")
-    private void onSelectFromGalleryResult(Intent data) {
-
-        Bitmap bm = null;
-        if (data != null) {
-            try {
-                bm = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), data.getData());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        bm.compress(Bitmap.CompressFormat.PNG, 100, bytes);
-        data1 = bytes.toByteArray();
-
-        if (bm.getWidth() > bm.getHeight()) ScalePic(bm,
-                mPhone.heightPixels);
-        else ScalePic(bm, mPhone.widthPixels);
-
-//        photo1 = convertIconToString(bm);
-//        bm = convertStringToIcon(photo1);
-//        ivImage.setImageBitmap(bm);
-
-    }
+//    @SuppressWarnings("deprecation")
+//    private void onSelectFromGalleryResult(Intent data) {
+//
+//        Bitmap bm = null;
+//        if (data != null) {
+//            try {
+//                bm = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), data.getData());
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+//        bm.compress(Bitmap.CompressFormat.PNG, 100, bytes);
+//        data1 = bytes.toByteArray();
+//
+//        if (bm.getWidth() > bm.getHeight()) ScalePic(bm,
+//                mPhone.heightPixels);
+//        else ScalePic(bm, mPhone.widthPixels);
+//
+////        photo1 = convertIconToString(bm);
+////        bm = convertStringToIcon(photo1);
+////        ivImage.setImageBitmap(bm);
+//
+//    }
 
     public static String convertIconToString(Bitmap bitmap) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();// outputstream
@@ -546,7 +661,7 @@ public class Photo extends AppCompatActivity implements
     public static final String a2 = "  ";
     public static final String a3 = ":";
 
-    private String updateWithTime() {
+    private void  updateWithTime() {
 
         //獲取當前時間
         Calendar c = new GregorianCalendar();
@@ -561,17 +676,18 @@ public class Photo extends AppCompatActivity implements
         String hourString = Integer.toString(hour);
         final int minute = c.get(Calendar.MINUTE);
         String minuteString = Integer.toString(minute);
-
+        final int second = c.get(Calendar.SECOND);
+        String secondString = Integer.toString(second);
 
         // Read from input fields
         // Use trim to eliminate leading or trailing white space
-        String timeString = yearString + a1 + monthString + a1 + dayString + a2 + hourString + a3 + minuteString;
+        String timeString = yearString + a1 + monthString + a1 + dayString + a2 + hourString + a3 + minuteString + a3 +secondString;
 
         TextView time;
         time = (TextView) findViewById(R.id.time);
-
         time.setText(timeString);
-        return yearString + monthString + dayString + hourString;
+
+       // return yearString + monthString + dayString + hourString;
     }
 
     static final String setphoto = "請提供照片";
@@ -583,24 +699,18 @@ public class Photo extends AppCompatActivity implements
             Toast.makeText(Photo.this, setphoto, Toast.LENGTH_LONG).show();
         } else {
 
-
             String path = "firememes/" + b + realrandom + ".png";
             StorageReference firememeRef = storage.getReference(path);
-            String a = mNameEditText.getText().toString().trim() + moreinfo+" 時間 :" + time.getText().toString().trim() + " " + reallocation.getText().toString().trim() + " " + reallocation2.getText().toString().trim();
-
-            TextView time;
-            time = (TextView) findViewById(R.id.time);
-            time.setText(updateWithTime());
+            String a = mNameEditText.getText().toString().trim() + moreinfo + " 時間 :" + time.getText().toString().trim() + " " + reallocation.getText().toString().trim() + " " + reallocation2.getText().toString().trim();
 
             StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("text", a).build();
-
             firememeRef.putBytes(data1, metadata);
 
 
-            DatabaseReference myRef2 = database.getReference().child(yearString + "/" + monthString + "/" + random + "/" + updateWithTime());
+            DatabaseReference myRef2 = database.getReference().child(yearString + "/" + monthString + "/" +dayString +"/"+random + "/" + time.getText().toString().trim());
             myRef2.setValue(realrandom);
-            DatabaseReference myRef = database.getReference().child(yearString + "/" + monthString + "/" + random + "/" + "name");
-            myRef.setValue("未命名");
+            DatabaseReference myRef = database.getReference().child(yearString + "/" + monthString + "/"+dayString +"/" + random + "/" + "name");
+            myRef.setValue("鑑定中");
 
 
             String nameString = mNameEditText.getText().toString().trim();
@@ -621,7 +731,7 @@ public class Photo extends AppCompatActivity implements
             // Create a ContentValues object where column names are the keys,
             // and pet attributes from the editor are the values.
             ContentValues values = new ContentValues();
-            values.put(PetEntry.COLUMN_PET_NAME, nameString);
+            values.put(PetEntry.COLUMN_PET_NAME, random);
             values.put(PetEntry.LOCATION, locationString);
             values.put(PetEntry.LOCATION2, locationString2);
             values.put(PetEntry.TIME, timeString);

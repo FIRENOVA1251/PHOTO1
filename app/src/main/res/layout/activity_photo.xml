@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="horizontal"
-        android:layout_weight="1.7">
+        android:layout_weight="2">
 
         <!-- Label -->
         <TextView
@@ -39,6 +39,7 @@
                 android:layout_width="match_parent"
                 android:layout_weight="4"
                 android:layout_height="0dp"
+                android:hint = "備註"
 
                  />
 
@@ -84,24 +85,16 @@
             style="@style/EditorFieldStyle"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="6"
-            android:hint="@string/hint_pet_weight"
+            android:layout_weight="8"
              />
 
-        <!-- Units for weight (kg) -->
-        <TextView
-            android:id="@+id/label_weight_units"
-            style="@style/EditorFieldStyle"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="4"
-            android:text="@string/unit_pet_weight" />
+
 
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="5"
+        android:layout_weight="6"
         android:orientation="vertical">
 
         <ImageView
@@ -115,7 +108,7 @@
             android:id="@+id/camera"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="開啟相機"
+            android:text="@string/open_camera"
             android:layout_gravity="center_vertical"
             />
 

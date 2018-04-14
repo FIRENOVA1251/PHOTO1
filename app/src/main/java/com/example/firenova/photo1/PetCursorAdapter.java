@@ -59,17 +59,17 @@ public class PetCursorAdapter extends CursorAdapter {
         TextView summaryTextView = (TextView) view.findViewById(R.id.summary);
         TextView summary2TextView = (TextView) view.findViewById(R.id.summary2);
         // Find the columns of pet attributes that we're interested in
-        int nameColumnIndex = cursor.getColumnIndex(PetEntry._ID);
-        int breedColumnIndex = cursor.getColumnIndex(PetEntry.LOCATION);
-        int breedColumnIndex2 = cursor.getColumnIndex(PetEntry.LOCATION2);
+        int idIndex = cursor.getColumnIndex(PetEntry._ID);
+        int timeIndex = cursor.getColumnIndex(PetEntry.TIME);
+        int nameIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME);
         // Read the pet attributes from the Cursor for the current pet
-        String petName = cursor.getString(nameColumnIndex);
-        String petBreed = cursor.getString(breedColumnIndex);
-        String petBreed2 = cursor.getString(breedColumnIndex2);
+        String petName = cursor.getString(idIndex);
+        String time = cursor.getString(timeIndex);
+        String name = cursor.getString(nameIndex);
 
         // Update the TextViews with the attributes for the current pet
         nameTextView.setText(petName);
-        summaryTextView.setText(petBreed);
-        summary2TextView.setText(petBreed2);
+        summaryTextView.setText(time);
+        summary2TextView.setText(name);
     }
 }
