@@ -37,8 +37,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,7 +45,6 @@ import com.example.firenova.photo1.data.PetContract.PetEntry;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -89,7 +86,7 @@ public class Photo extends AppCompatActivity implements
     /**
      * EditText field to enter the pet's name
      */
-    private EditText mNameEditText;
+    private TextView mNameEditText;
 
     /**
      * EditText field to enter the pet's breed
@@ -134,13 +131,10 @@ public class Photo extends AppCompatActivity implements
     String yearString = Integer.toString(year);
     int month = c.get(Calendar.MONTH);
     int realmonth = month + 1;
-    String monthString = Integer.toString(realmonth);
     int day = c.get(Calendar.DAY_OF_MONTH);
-    String dayString = Integer.toString(day);
     int hour = c.get(Calendar.HOUR_OF_DAY);
-    String hourString = Integer.toString(hour);
-
-    final String b = yearString + "-" + monthString + "-" + dayString + "-" + hourString + "-";
+    int minute = c.get(Calendar.MINUTE);
+    int second = c.get(Calendar.SECOND);
     String realrandom = UUID.randomUUID().toString();
     String random = realrandom.substring(0, 8);
     private FirebaseStorage storage = FirebaseStorage.getInstance();
@@ -190,7 +184,7 @@ public class Photo extends AppCompatActivity implements
 
         // Find all relevant views that we will need to read user input from
         ivImage = (ImageView) findViewById(R.id.img);
-        mNameEditText = (EditText) findViewById(R.id.edit_pet_name);
+        mNameEditText = (TextView) findViewById(R.id.edit_pet_name);
         reallocation = (TextView) findViewById(R.id.reallocation);
         reallocation2 = (TextView) findViewById(R.id.reallocation2);
         time = (TextView) findViewById(R.id.time);
@@ -207,6 +201,9 @@ public class Photo extends AppCompatActivity implements
             locationManager.requestLocationUpdates(provider, 2000, 10, locationListener);
 
             selectImage();
+
+            mNameEditText.setText("白蟻名字");
+
             // Invalidate the options menu, so the "Delete" menu option can be hidden.
             // (It doesn't make sense to delete a pet that hasn't been created yet.)
             //invalidateOptionsMenu();
@@ -226,47 +223,49 @@ public class Photo extends AppCompatActivity implements
             Cursor cursor2 = getContentResolver().query(mCurrentPetUri, column2, null, null, null);
             try {
                 if (cursor.moveToFirst()) {
-                    if (cursor2.moveToFirst()){
+                    if (cursor2.moveToFirst()) {
 
 
-                    do {
+                        do {
 
-                        int index = cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME);
-                        int index2 = cursor2.getColumnIndex(PetEntry.TIME);
+                            int index = cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME);
+                            int index2 = cursor2.getColumnIndex(PetEntry.TIME);
 
-                        String a123 = cursor.getString(index);
-                        String lasttime = cursor2.getString(index2);
-                        String[] parts = lasttime.split(" ");
-                        String[] pair2 = parts[1].split(":");
-                        Toast.makeText(Photo.this, "更改成" + a123, Toast.LENGTH_LONG).show();
+                            String a123 = cursor.getString(index);
+                            String lasttime = cursor2.getString(index2);
+                            String[] parts = lasttime.split(" ");
+                            String[] pair2 = parts[1].split(":");
+                            Toast.makeText(Photo.this, "更改成" + a123, Toast.LENGTH_LONG).show();
 
-                        DatabaseReference myRef2 = database.getReference().child(parts[0]+ "/" + pair2[0].trim()  +"/" + pair2[1].trim()  +"/" + a123 + "/" + "name");
-                        myRef2.addValueEventListener(new ValueEventListener() {
+                            DatabaseReference myRef2 = database.getReference().child(parts[0] + "/" + pair2[0].trim() + "/" + pair2[1].trim() + "/" + pair2[2].trim() + "/" + a123 + "/" + "name");
+                            myRef2.addValueEventListener(new ValueEventListener() {
 
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
 
-                                String value = dataSnapshot.getValue(String.class);
-                                //  Toast.makeText(Photo.this, "更改成" + value, Toast.LENGTH_LONG).show();
-                                if (value != null) {
-                                    mNameEditText.setText(value);
-                                    ContentValues values = new ContentValues();
-                                    String value2 = mNameEditText.getText().toString().trim();
-                                    values.put(PetEntry.COLUMN_PET_NAME, value2);
+                                    String value = dataSnapshot.getValue(String.class);
+                                    //  Toast.makeText(Photo.this, "更改成" + value, Toast.LENGTH_LONG).show();
+                                    if (value != null) {
 
-                                    getContentResolver().update(mCurrentPetUri, values, null, null);
+                                        mNameEditText.setText(value);
+                                        ContentValues values = new ContentValues();
+                                        String value2 = mNameEditText.getText().toString().trim();
+                                        values.put(PetEntry.COLUMN_PET_NAME, value2);
+
+                                        getContentResolver().update(mCurrentPetUri, values, null, null);
+                                    }
                                 }
-                            }
 
-                            @Override
-                            public void onCancelled(DatabaseError firebaseError) {
-                                Log.d("FireBaseTraining", "The read failed: " + firebaseError.getMessage());
-                            }
-                        });
+                                @Override
+                                public void onCancelled(DatabaseError firebaseError) {
+                                    Log.d("FireBaseTraining", "The read failed: " + firebaseError.getMessage());
+                                }
+                            });
 
-                    } while (cursor.moveToNext());
+                        } while (cursor.moveToNext());
+                    }
                 }
-            }} catch (Exception e) {
+            } catch (Exception e) {
                 Toast.makeText(Photo.this, "未鑑定完成", Toast.LENGTH_LONG).show();
             } finally {
                 if (cursor != null && !cursor.isClosed()) {
@@ -274,7 +273,7 @@ public class Photo extends AppCompatActivity implements
                     cursor2.close();
                 }
             }
-            mNameEditText.setEnabled(false);
+            //  mNameEditText.setEnabled(false);
         }
         updateWithTime();
         Button btnSelect;
@@ -464,6 +463,12 @@ public class Photo extends AppCompatActivity implements
                 reallocation2.setText(lo2);
                 time.setText(convertRationaltime(datetime));
                 photodata = false;
+            } else {
+                String lo1 = "相片沒紀錄緯度 ";
+                String lo2 = "相片沒紀錄經度";
+                reallocation.setText(lo1);
+                reallocation2.setText(lo2);
+                time.setText(convertRationaltime(datetime));
             }
 
 
@@ -705,11 +710,31 @@ public class Photo extends AppCompatActivity implements
     static final String setphoto = "請提供照片";
 
     private void savePet() {
-
         if (data1 == null) {
-
             Toast.makeText(Photo.this, setphoto, Toast.LENGTH_LONG).show();
         } else {
+            String monthString = Integer.toString(realmonth);
+            String dayString = Integer.toString(day);
+            String hourString = Integer.toString(hour);
+            String minuteString = Integer.toString(minute);
+            String secondString = Integer.toString(second);
+            if (month < 10) {
+                monthString = "0" + monthString;
+            }
+            if (day < 10) {
+                dayString = "0" + dayString;
+            }
+            if (hour < 10) {
+                hourString = "0" + hourString;
+            }
+            if (minute < 10) {
+                minuteString = "0" + minuteString;
+            }
+            if (second < 10) {
+                secondString = "0" + secondString;
+            }
+
+            String b = yearString + "-" + monthString + "-" + dayString + "-" + hourString + "-" + minuteString + "-" + secondString + "-";
 
             String path = "firememes/" + b + realrandom + ".png";
             StorageReference firememeRef = storage.getReference(path);
@@ -722,16 +747,15 @@ public class Photo extends AppCompatActivity implements
             String[] parts = timeString.split(" ");
             String[] pair2 = parts[1].split(":");
 
-            DatabaseReference myRef2 = database.getReference().child(parts[0] +"/" + pair2[0].trim()  + "/" + pair2[1].trim()  +"/"+ random  );
+            DatabaseReference myRef2 = database.getReference().child(parts[0] + "/" + pair2[0].trim() + "/" + pair2[1].trim() + "/" + pair2[2].trim() + "/" + random);
             myRef2.setValue(realrandom);
-            DatabaseReference myRef = database.getReference().child(parts[0] + "/" + pair2[0].trim()  + "/" + pair2[1].trim()  +"/"+ random + "/" + "name");
+            DatabaseReference myRef = database.getReference().child(parts[0] + "/" + pair2[0].trim() + "/" + pair2[1].trim() + "/" + pair2[2].trim() + "/" + random + "/" + "name");
             myRef.setValue("鑑定中");
 
 
             String nameString = mNameEditText.getText().toString().trim();
             String locationString = reallocation.getText().toString().trim();
             String locationString2 = reallocation2.getText().toString().trim();
-
 
 
             // Check if this is supposed to be a new pet
