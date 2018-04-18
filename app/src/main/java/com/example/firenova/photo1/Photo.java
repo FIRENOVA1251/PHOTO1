@@ -222,17 +222,26 @@ public class Photo extends AppCompatActivity implements
             mNameEditText.setText("鑑定中");
             // Read from the fiirebase database
             String[] column = {PetEntry.COLUMN_PET_NAME};
+            String[] column2 = {PetEntry.TIME};
             Cursor cursor = getContentResolver().query(mCurrentPetUri, column, null, null, null);
-
+            Cursor cursor2 = getContentResolver().query(mCurrentPetUri, column2, null, null, null);
             try {
                 if (cursor.moveToFirst()) {
+                    if (cursor2.moveToFirst()){
+
+
                     do {
 
                         int index = cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME);
+                        int index2 = cursor2.getColumnIndex(PetEntry.TIME);
+
                         String a123 = cursor.getString(index);
+                        String lasttime = cursor2.getString(index2);
+                        String[] parts = lasttime.split("  ");
+                        String[] pair2 = parts[1].split(":");
                         Toast.makeText(Photo.this, "更改成" + a123, Toast.LENGTH_LONG).show();
 
-                        DatabaseReference myRef2 = database.getReference().child(yearString + "/" + monthString + "/"+dayString +"/" + a123 + "/" + "name");
+                        DatabaseReference myRef2 = database.getReference().child(parts[0]+ "/" + pair2[0].trim()  +"/" + pair2[1].trim()  +"/" + a123 + "/" + "name");
                         myRef2.addValueEventListener(new ValueEventListener() {
 
                             @Override
@@ -249,6 +258,7 @@ public class Photo extends AppCompatActivity implements
                                     getContentResolver().update(mCurrentPetUri, values, null, null);
                                 }
                             }
+
                             @Override
                             public void onCancelled(DatabaseError firebaseError) {
                                 Log.d("FireBaseTraining", "The read failed: " + firebaseError.getMessage());
@@ -257,11 +267,12 @@ public class Photo extends AppCompatActivity implements
 
                     } while (cursor.moveToNext());
                 }
-            } catch (Exception e) {
-                Toast.makeText(Photo.this, "未鑑定完成" , Toast.LENGTH_LONG).show();
+            }} catch (Exception e) {
+                Toast.makeText(Photo.this, "未鑑定完成", Toast.LENGTH_LONG).show();
             } finally {
                 if (cursor != null && !cursor.isClosed()) {
                     cursor.close();
+                    cursor2.close();
                 }
             }
             mNameEditText.setEnabled(false);
@@ -402,7 +413,7 @@ public class Photo extends AppCompatActivity implements
         Bitmap bm = BitmapFactory.decodeFile(path, options);
 
 
-      //  savePNG_After(bm, path);
+        //  savePNG_After(bm, path);
 
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         bm.compress(Bitmap.CompressFormat.PNG, 100, bytes);
@@ -431,8 +442,8 @@ public class Photo extends AppCompatActivity implements
 
     public void getPhotoLocation(String imagePath) {
         Log.i("TAG", "getPhotoLocation==" + imagePath);
-        float output1 ;
-        float output2 ;
+        float output1;
+        float output2;
 
         try {
             ExifInterface exifInterface = new ExifInterface(imagePath);
@@ -489,6 +500,7 @@ public class Photo extends AppCompatActivity implements
         }
         return (float) result;
     }
+
     private static String convertRationaltime(String rationalString) {
 
 
@@ -499,7 +511,8 @@ public class Photo extends AppCompatActivity implements
 
         String[] pair2;
         pair2 = parts[1].split(":");
-        return pair1[0] + a1 + pair1[1] + a1 + pair1[2].trim() + a2 + pair2[0].trim()+ a3 + pair2[1] + a3 + pair2[2].trim();
+
+        return pair1[0] + a1 + pair1[1] + a1 + pair1[2].trim() + a2 + pair2[0].trim() + a3 + pair2[1] + a3 + pair2[2].trim();
 
     }
 
@@ -661,7 +674,7 @@ public class Photo extends AppCompatActivity implements
     public static final String a2 = "  ";
     public static final String a3 = ":";
 
-    private void  updateWithTime() {
+    private void updateWithTime() {
 
         //獲取當前時間
         Calendar c = new GregorianCalendar();
@@ -681,13 +694,13 @@ public class Photo extends AppCompatActivity implements
 
         // Read from input fields
         // Use trim to eliminate leading or trailing white space
-        String timeString = yearString + a1 + monthString + a1 + dayString + a2 + hourString + a3 + minuteString + a3 +secondString;
+        String timeString = yearString + a1 + monthString + a1 + dayString + a2 + hourString + a3 + minuteString + a3 + secondString;
 
         TextView time;
         time = (TextView) findViewById(R.id.time);
         time.setText(timeString);
 
-       // return yearString + monthString + dayString + hourString;
+        // return yearString + monthString + dayString + hourString;
     }
 
     static final String setphoto = "請提供照片";
@@ -706,17 +719,20 @@ public class Photo extends AppCompatActivity implements
             StorageMetadata metadata = new StorageMetadata.Builder().setCustomMetadata("text", a).build();
             firememeRef.putBytes(data1, metadata);
 
+            String timeString = time.getText().toString();
+            String[] parts = timeString.split("  ");
+            String[] pair2 = parts[1].split(":");
 
-            DatabaseReference myRef2 = database.getReference().child(yearString + "/" + monthString + "/" +dayString +"/"+random + "/" + time.getText().toString().trim());
+            DatabaseReference myRef2 = database.getReference().child(parts[0] +"/" + pair2[0].trim()  + "/" + pair2[1].trim()  +"/"+ random  );
             myRef2.setValue(realrandom);
-            DatabaseReference myRef = database.getReference().child(yearString + "/" + monthString + "/"+dayString +"/" + random + "/" + "name");
+            DatabaseReference myRef = database.getReference().child(parts[0] + "/" + pair2[0].trim()  + "/" + pair2[1].trim()  +"/"+ random + "/" + "name");
             myRef.setValue("鑑定中");
 
 
             String nameString = mNameEditText.getText().toString().trim();
             String locationString = reallocation.getText().toString().trim();
             String locationString2 = reallocation2.getText().toString().trim();
-            String timeString = time.getText().toString().trim();
+
 
 
             // Check if this is supposed to be a new pet
