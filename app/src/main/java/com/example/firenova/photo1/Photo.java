@@ -48,8 +48,7 @@ import com.example.firenova.photo1.data.PetContract.PetEntry;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -237,7 +236,7 @@ public class Photo extends AppCompatActivity implements
 
                         String a123 = cursor.getString(index);
                         String lasttime = cursor2.getString(index2);
-                        String[] parts = lasttime.split("  ");
+                        String[] parts = lasttime.split(" ");
                         String[] pair2 = parts[1].split(":");
                         Toast.makeText(Photo.this, "更改成" + a123, Toast.LENGTH_LONG).show();
 
@@ -671,7 +670,7 @@ public class Photo extends AppCompatActivity implements
 
 
     public static final String a1 = "/";
-    public static final String a2 = "  ";
+    public static final String a2 = " ";
     public static final String a3 = ":";
 
     private void updateWithTime() {
@@ -720,7 +719,7 @@ public class Photo extends AppCompatActivity implements
             firememeRef.putBytes(data1, metadata);
 
             String timeString = time.getText().toString();
-            String[] parts = timeString.split("  ");
+            String[] parts = timeString.split(" ");
             String[] pair2 = parts[1].split(":");
 
             DatabaseReference myRef2 = database.getReference().child(parts[0] +"/" + pair2[0].trim()  + "/" + pair2[1].trim()  +"/"+ random  );
