@@ -134,7 +134,8 @@ public class Photo extends AppCompatActivity implements
     int day = c.get(Calendar.DAY_OF_MONTH);
     int hour = c.get(Calendar.HOUR_OF_DAY);
     int minute = c.get(Calendar.MINUTE);
-    int second = c.get(Calendar.SECOND);
+    int second1 = c.get(Calendar.SECOND);
+
     String realrandom = UUID.randomUUID().toString();
     String random = realrandom.substring(0, 8);
     private FirebaseStorage storage = FirebaseStorage.getInstance();
@@ -234,22 +235,43 @@ public class Photo extends AppCompatActivity implements
                             String a123 = cursor.getString(index);
                             String lasttime = cursor2.getString(index2);
                             String[] parts = lasttime.split(" ");
+                            String[] pair1 = parts[0].split("/");
+                            int month = Integer.parseInt(pair1[1]);
+                            if (month < 10) {
+                                pair1[1] = "0" + pair1[1];
+                            }
+                            int date = Integer.parseInt(pair1[2]);
+                            if (date < 10) {
+                                pair1[1] = "0" + pair1[2];
+                            }
                             String[] pair2 = parts[1].split(":");
+
                             Toast.makeText(Photo.this, "更改成" + a123, Toast.LENGTH_LONG).show();
 
-                            DatabaseReference myRef2 = database.getReference().child(parts[0] + "/" + pair2[0].trim() + "/" + pair2[1].trim() + "/" + pair2[2].trim() + "/" + a123 + "/" + "name");
+                            DatabaseReference myRef2 = database.getReference().child(pair1[0] + "/" + pair1[1] + pair1[2] + "/" + pair2[0].trim() + pair2[1].trim() + pair2[2].trim() + "/" + a123);
                             myRef2.addValueEventListener(new ValueEventListener() {
 
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {
 
                                     String value = dataSnapshot.getValue(String.class);
-                                    //  Toast.makeText(Photo.this, "更改成" + value, Toast.LENGTH_LONG).show();
+                                    Toast.makeText(Photo.this, "value: " + value, Toast.LENGTH_LONG).show();
+
+                                    // value = "台灣家白蟻";
+                                    Toast.makeText(Photo.this, "value2: " + value, Toast.LENGTH_LONG).show();
                                     if (value != null) {
 
                                         mNameEditText.setText(value);
                                         ContentValues values = new ContentValues();
                                         String value2 = mNameEditText.getText().toString().trim();
+                                        if (isString(value2)) {
+
+                                            if (Integer.parseInt(value2, 16) == 1) {
+                                                String asd = "台灣家白蟻";
+                                                mNameEditText.setText(asd);
+                                                value2 = mNameEditText.getText().toString().trim();
+                                            }
+                                        }
                                         values.put(PetEntry.COLUMN_PET_NAME, value2);
 
                                         getContentResolver().update(mCurrentPetUri, values, null, null);
@@ -268,7 +290,7 @@ public class Photo extends AppCompatActivity implements
             } catch (Exception e) {
                 Toast.makeText(Photo.this, "未鑑定完成", Toast.LENGTH_LONG).show();
             } finally {
-                if (cursor != null && !cursor.isClosed()) {
+                if (cursor != null && cursor2 != null && !cursor.isClosed()) {
                     cursor.close();
                     cursor2.close();
                 }
@@ -694,6 +716,9 @@ public class Photo extends AppCompatActivity implements
         final int minute = c.get(Calendar.MINUTE);
         String minuteString = Integer.toString(minute);
         final int second = c.get(Calendar.SECOND);
+        if (second != second1) {
+            second1 = second;
+        }
         String secondString = Integer.toString(second);
 
         // Read from input fields
@@ -717,7 +742,7 @@ public class Photo extends AppCompatActivity implements
             String dayString = Integer.toString(day);
             String hourString = Integer.toString(hour);
             String minuteString = Integer.toString(minute);
-            String secondString = Integer.toString(second);
+            String secondString = Integer.toString(second1);
             if (month < 10) {
                 monthString = "0" + monthString;
             }
@@ -730,11 +755,11 @@ public class Photo extends AppCompatActivity implements
             if (minute < 10) {
                 minuteString = "0" + minuteString;
             }
-            if (second < 10) {
+            if (second1 < 10) {
                 secondString = "0" + secondString;
             }
 
-            String b = yearString + "-" + monthString + "-" + dayString + "-" + hourString + "-" + minuteString + "-" + secondString + "-";
+            String b = yearString + "------" + monthString + dayString + "-----" + hourString + minuteString + secondString + "-------";
 
             String path = "firememes/" + b + realrandom + ".png";
             StorageReference firememeRef = storage.getReference(path);
@@ -745,12 +770,26 @@ public class Photo extends AppCompatActivity implements
 
             String timeString = time.getText().toString();
             String[] parts = timeString.split(" ");
+            String[] pair1 = parts[0].split("/");
+            int month = Integer.parseInt(pair1[1]);
+            if (month < 10) {
+                pair1[1] = "0" + pair1[1];
+            }
+            int date = Integer.parseInt(pair1[2]);
+            if (date < 10) {
+                pair1[1] = "0" + pair1[2];
+            }
             String[] pair2 = parts[1].split(":");
+            if (pair2[2].trim() != secondString || pair2[0].trim() != hourString || pair2[1].trim() != minuteString) {
+                pair2[0] = hourString;
+                pair2[1] = minuteString;
+                pair2[2] = secondString;
+            }
 
-            DatabaseReference myRef2 = database.getReference().child(parts[0] + "/" + pair2[0].trim() + "/" + pair2[1].trim() + "/" + pair2[2].trim() + "/" + random);
-            myRef2.setValue(realrandom);
-            DatabaseReference myRef = database.getReference().child(parts[0] + "/" + pair2[0].trim() + "/" + pair2[1].trim() + "/" + pair2[2].trim() + "/" + random + "/" + "name");
-            myRef.setValue("鑑定中");
+            DatabaseReference myRef2 = database.getReference().child(pair1[0] + "/" + pair1[1] + pair1[2] + "/" + pair2[0].trim() + pair2[1].trim() + pair2[2].trim() + "/" + random);
+            myRef2.setValue("鑑定中");
+//            DatabaseReference myRef = database.getReference().child(pair1[0] + "/" + pair1[1] + pair1[2] + "/" + pair2[0].trim() + pair2[1].trim() + pair2[2].trim() + "/" + random + "/" + "name");
+//            myRef.setValue("鑑定中");
 
 
             String nameString = mNameEditText.getText().toString().trim();
@@ -1016,6 +1055,15 @@ public class Photo extends AppCompatActivity implements
         alertDialog.show();
     }
 
+    public static boolean isString(String str) {
+        int temp = 0;
+        try {
+            temp = Integer.parseInt(str, 16);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
 
 //    /**
 //     * Prompt the user to confirm that they want to delete this pet.
